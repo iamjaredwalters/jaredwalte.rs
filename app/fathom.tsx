@@ -8,7 +8,7 @@ export default function Fathom() {
   const searchParams = useSearchParams();
   useEffect(() => {
     load("LAGKSBSP", {
-      includedDomains: ["jaredwalte.rs"],
+      includedDomains: ["www.jaredwalte.rs"],
       spa: "auto",
     });
 
