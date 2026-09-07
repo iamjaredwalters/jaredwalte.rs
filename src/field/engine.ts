@@ -38,6 +38,7 @@ export interface TargetOptions {
   tilt?: number;
   pitch?: number;
   distance?: number;
+  bright?: number;
 }
 
 export interface Framing {
@@ -53,9 +54,10 @@ interface RegisteredTarget {
   tilt: number;
   pitch: number;
   distance: number;
+  bright: number;
 }
 
-const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1 };
+const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1 };
 
 export class Field {
   readonly backend: 'webgpu' | 'webgl';
@@ -90,6 +92,7 @@ export class Field {
   private readonly uPointerForce = uniform(0.05);
   private readonly uSize = uniform(0.0085);
   private readonly uBrightness = uniform(0.16);
+  private baseBrightness = 0.16;
   private readonly uAlpha = uniform(0.7);
   private readonly uBloom = uniform(0.4);
 
@@ -115,6 +118,7 @@ export class Field {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     if (this.backend === 'webgl') {
+      this.baseBrightness = 0.3;
       this.uBrightness.value = 0.3;
       this.uSize.value = 0.011;
     }
@@ -312,12 +316,12 @@ export class Field {
   }
 
   setBrightness(value: number): void {
-    this.uBrightness.value = value;
+    this.baseBrightness = value;
   }
 
   debugSet(params: Partial<Record<'size' | 'brightness' | 'alpha' | 'bloom' | 'jitter' | 'stiffness' | 'damping' | 'turbulence' | 'exposure', number>>): void {
     if (params.size !== undefined) this.uSize.value = params.size;
-    if (params.brightness !== undefined) this.uBrightness.value = params.brightness;
+    if (params.brightness !== undefined) this.baseBrightness = params.brightness;
     if (params.alpha !== undefined) this.uAlpha.value = params.alpha;
     if (params.bloom !== undefined) this.uBloom.value = params.bloom;
     if (params.jitter !== undefined) this.uJitter.value = params.jitter;
@@ -385,6 +389,7 @@ export class Field {
     this.sprite.rotation.y += (spin + px * 0.35 * motion - this.sprite.rotation.y) * k;
     this.sprite.rotation.x += (target.pitch - py * target.tilt * motion - this.sprite.rotation.x) * k;
     this.camera.position.z += (this.targetDistance * this.framing.zoom - this.camera.position.z) * k;
+    this.uBrightness.value += (this.baseBrightness * target.bright - this.uBrightness.value) * k;
 
     if (this.pointerActive && motion) {
       const fovY = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;

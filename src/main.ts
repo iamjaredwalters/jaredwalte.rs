@@ -44,7 +44,7 @@ async function boot(): Promise<void> {
   contact.dataset.zone = 'contact';
 
   zones.set('carrier', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: wide.matches ? 0.42 : 0.7, zoom: 1 }) });
-  zones.set('portrait', { slot: SLOT.portrait, station: null, framing: () => (wide.matches ? { offsetX: -0.85, offsetY: 0, zoom: 1 } : { offsetX: 0, offsetY: 0.5, zoom: 1.3 }) });
+  zones.set('portrait', { slot: SLOT.portrait, station: null, framing: () => (wide.matches ? { offsetX: -0.85, offsetY: -0.16, zoom: 1 } : { offsetX: 0, offsetY: 0.5, zoom: 1.3 }) });
   zones.set('shell', { slot: SLOT.shell, station: null, framing: () => ({ offsetX: 0, offsetY: 0, zoom: 1 }) });
   zones.set('contact', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: -0.2, zoom: 1 }) });
   STATIONS.forEach((station, index) => zones.set(station.id, { slot: STATION_SLOT(index), station, framing: stationFraming }));
@@ -241,8 +241,8 @@ async function boot(): Promise<void> {
     }
   });
   loads.push(
-    portraitFromImage('/jared.png', TARGET_POINTS).then((data) => {
-      field.setTarget(SLOT.portrait, data, { scale: 0.9, spin: 0.12, tilt: 0.12, distance: 2.9 });
+    portraitFromImage('/jared-jetski.webp', TARGET_POINTS, { floor: 0.05, gamma: 2.0 }).then((data) => {
+      field.setTarget(SLOT.portrait, data, { scale: 0.8, spin: 0.14, tilt: 0.12, pitch: 0.02, distance: 2.9, bright: 0.55 });
       if (active === 'portrait') tune('portrait', true);
     }),
   );

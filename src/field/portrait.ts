@@ -4,20 +4,30 @@ export interface Luminance {
   width: number;
   height: number;
   values: Float32Array;
+  alpha: Float32Array;
+}
+
+export interface PortraitOptions {
+  floor?: number;
+  gamma?: number;
+  seed?: number;
 }
 
 export function luminanceFromPixels(width: number, height: number, rgba: Uint8ClampedArray): Luminance {
   const values = new Float32Array(width * height);
+  const alpha = new Float32Array(width * height);
   for (let i = 0; i < width * height; i++) {
     const r = rgba[i * 4] / 255;
     const g = rgba[i * 4 + 1] / 255;
     const b = rgba[i * 4 + 2] / 255;
     values[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    alpha[i] = rgba[i * 4 + 3] / 255;
   }
-  return { width, height, values };
+  return { width, height, values, alpha };
 }
 
-export function portraitFromLuminance(lum: Luminance, count: number, seed = 11): TargetData {
+export function portraitFromLuminance(lum: Luminance, count: number, options: PortraitOptions = {}): TargetData {
+  const { floor = 0, gamma = 1.6, seed = 11 } = options;
   const rng = mulberry32(seed);
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
@@ -25,7 +35,8 @@ export function portraitFromLuminance(lum: Luminance, count: number, seed = 11):
   let total = 0;
   for (let i = 0; i < lum.values.length; i++) {
     const v = Math.max(0, lum.values[i] - 0.04);
-    weights[i] = Math.pow(v, 1.6);
+    const coverage = lum.alpha[i] > 0.5 ? 1 : 0;
+    weights[i] = coverage * (floor + Math.pow(v, gamma));
     total += weights[i];
   }
   const cdf = new Float32Array(weights.length);
@@ -54,7 +65,7 @@ export function portraitFromLuminance(lum: Luminance, count: number, seed = 11):
     positions[p * 3] = x;
     positions[p * 3 + 1] = y;
     positions[p * 3 + 2] = z;
-    const warm = 0.35 + v * 0.65;
+    const warm = 0.1 + Math.pow(v, 1.4) * 0.9;
     colors[p * 3] = warm;
     colors[p * 3 + 1] = warm * 0.94;
     colors[p * 3 + 2] = warm * 0.82;
@@ -62,17 +73,19 @@ export function portraitFromLuminance(lum: Luminance, count: number, seed = 11):
   return { positions, colors };
 }
 
-export async function portraitFromImage(url: string, count: number, size = 192): Promise<TargetData> {
+export async function portraitFromImage(url: string, count: number, options: PortraitOptions = {}, size = 224): Promise<TargetData> {
   const image = new Image();
   image.decoding = 'async';
   image.src = url;
   await image.decode();
+  const width = size;
+  const height = Math.max(1, Math.round((size * image.naturalHeight) / image.naturalWidth));
   const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) throw new Error('portrait: no 2d context');
-  ctx.drawImage(image, 0, 0, size, size);
-  const pixels = ctx.getImageData(0, 0, size, size).data;
-  return portraitFromLuminance(luminanceFromPixels(size, size, pixels), count);
+  ctx.drawImage(image, 0, 0, width, height);
+  const pixels = ctx.getImageData(0, 0, width, height).data;
+  return portraitFromLuminance(luminanceFromPixels(width, height, pixels), count, options);
 }

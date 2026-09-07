@@ -18,7 +18,7 @@ pnpm preview
 
 - `src/field/engine.ts` — three r185 `WebGPURenderer` + TSL. Storage buffers for position/velocity/color, a `targetCount × targetPoints` storage buffer of morph targets, one compute pass per frame (spring to target, noise turbulence, pointer repulsion), additive sprites, bloom + grain post pass via `RenderPipeline`.
 - `src/field/targets.ts` — procedural point-cloud generators (carrier wave, globe, constellation dome, hub graph, bar ledger, terrain). Pure, seeded, unit-tested.
-- `src/field/portrait.ts` — samples `public/jared.png` by luminance into a point relief.
+- `src/field/portrait.ts` — samples `public/jared-jetski.webp` (alpha-masked cutout) by luminance into a point relief. `scripts/cutout.swift` lifts a subject off its background with macOS Vision: `swift scripts/cutout.swift in.jpg out.png`.
 - `src/field/cloud.ts` — decoder for `public/clouds/*.bin` (header + int16 xyz + rgb8).
 - `src/data/stations.ts` — the seven stations: copy, frequency, callsign, hue, artifact.
 - `src/ui/` — station rendering, tuner readout, dossier (View Transitions + `#/station` hash routing).
