@@ -1,0 +1,181 @@
+.tuner {
+  position: sticky;
+  top: var(--masthead-h);
+  z-index: 15;
+  height: var(--tuner-h);
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding-inline: var(--gutter);
+  font-family: var(--font-mono);
+  container-type: scroll-state;
+  background: linear-gradient(to bottom, oklch(from var(--ink) l c h / 0.85), oklch(from var(--ink) l c h / 0));
+  backdrop-filter: blur(0px);
+  transition: backdrop-filter var(--dur), background var(--dur);
+}
+
+@container scroll-state(stuck: top) {
+  .tuner__readout {
+    scale: 0.92;
+  }
+}
+
+.tuner__readout {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  transform-origin: left center;
+  transition: scale 400ms var(--ease-out);
+}
+
+.tuner__freq {
+  font-size: clamp(1.4rem, 3vw, 2.1rem);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--paper);
+  text-box: trim-both cap alphabetic;
+}
+
+.tuner--sweeping .tuner__freq {
+  color: var(--accent);
+}
+
+.tuner__band {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+.tuner__dial {
+  position: relative;
+  height: 1.6rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+
+.tuner__ticks {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  width: max-content;
+  animation: dial linear both;
+  animation-timeline: scroll(root);
+  animation-range: 0 100%;
+}
+
+@keyframes dial {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: -100% 0;
+  }
+}
+
+.tuner__ticks i {
+  display: block;
+  width: 1px;
+  height: 0.45rem;
+  background: var(--line);
+  flex: none;
+}
+
+.tuner__ticks i:nth-child(5n + 1) {
+  height: 0.9rem;
+  background: var(--paper-2);
+}
+
+.tuner__ticks i[data-station] {
+  height: 1.4rem;
+  width: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0.6rem var(--glow);
+}
+
+.tuner__needle {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 0.6rem var(--glow);
+}
+
+.tuner__call {
+  display: grid;
+  line-height: 1.15;
+  text-align: right;
+}
+
+.tuner__label {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tuner__callsign {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  transition: color 900ms var(--ease-out);
+}
+
+.tuner__meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 1.3rem;
+}
+
+.tuner__meter i {
+  display: block;
+  width: 4px;
+  background: var(--ink-3);
+  border-radius: 1px;
+  height: calc(0.3rem + sibling-index() * 0.15rem);
+  transition: background 400ms;
+}
+
+.tuner--locked .tuner__meter i {
+  background: var(--accent);
+  animation: meter 1.6s var(--ease-radio) infinite alternate;
+  animation-delay: calc(sibling-index() * -140ms);
+}
+
+.tuner--sweeping .tuner__meter i {
+  background: var(--paper-2);
+  animation: meter 220ms steps(3, jump-none) infinite alternate;
+  animation-delay: calc(sibling-index() * -37ms);
+}
+
+@keyframes meter {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (width < 48rem) {
+  .tuner {
+    grid-template-columns: auto 1fr auto;
+  }
+  .tuner__call {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tuner--locked .tuner__meter i,
+  .tuner--sweeping .tuner__meter i {
+    animation: none;
+  }
+}

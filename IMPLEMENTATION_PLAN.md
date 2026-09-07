@@ -1,0 +1,53 @@
+# Portfolio — jaredwalte.rs
+
+Concept: **the site is a receiver.** One persistent WebGPU compute-particle field (three r185 `WebGPURenderer` + TSL, WebGL2 fallback) fills the viewport. Scrolling "tunes" through stations (projects); the field morphs from a carrier wave into each project's artifact (Blender-sampled point clouds of the Ting mic, the Seevie stick, procedural constellation/city, a particle portrait). CSS scroll-driven animations drive the dial readout and the page accent hue per station; same-document View Transitions open project dossiers; optional radio audio cues (Web Audio synthesis, modeled on real squelch/chirp).
+
+Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No framework. Blender 5.2 via MCP generates point clouds → `public/clouds/*.bin` (int16 xyz + rgb8, 65,536 pts each).
+
+## Stage 0: Scaffold + tokens
+**Goal**: repo, Vite MPA-free single page, design tokens (oklch, `light-dark()`), fonts, layout skeleton, project data file.
+**Success Criteria**: `pnpm dev` serves a page with all sections and correct type; `pnpm build` passes typecheck.
+**Tests**: vitest for data/point-cloud decoding helpers.
+**Status**: Complete
+
+## Stage 1: Particle engine
+**Goal**: `src/field/` — storage buffers (position, velocity, seed), K morph targets in one storage buffer, compute update (spring to target + curl noise + pointer repulsion), sprite render with additive glow, WebGL2 fallback, reduced-motion path, DPR/particle-count budget.
+**Success Criteria**: 262k particles at 60fps on M-series in WebGPU; morphs between procedural targets (carrier wave, sphere, constellation) via a `setTarget(i)` API; degrades without WebGPU.
+**Tests**: target generators are pure and unit-tested (counts, bounds).
+**Status**: Complete
+
+## Stage 2: Blender artifacts
+**Goal**: model Ting (EP-2350) and Seevie stick (M5StickS3) in a fresh Blender scene, sample colored surface points, export `.bin`; loader + decoder on the web side; targets registered.
+**Success Criteria**: silhouettes recognizable at particle scale; files < 700 KB each.
+**Tests**: decoder round-trip test on a synthetic buffer.
+**Status**: Complete
+
+## Stage 3: Scroll choreography
+**Goal**: sections as stations; `animation-timeline: scroll()`/`view()` for readout, dial, accent hue (`@property`), `scroll-state()` sticky header; JS scroll observer drives field target + camera path; `sibling-index()` stagger; `text-box-trim`, `corner-shape`, `@function`, `if()`.
+**Success Criteria**: tuning feels continuous; readout frequency matches station; no layout shift.
+**Tests**: station table has unique frequencies and ordered ranges (unit).
+**Status**: Complete
+
+## Stage 4: Dossiers (project detail)
+**Goal**: click a station → same-document View Transition into a full-screen dossier (`view-transition-name` morphs), deep-linkable `#/station`, Esc/back closes; field zooms into the artifact; optional TSL post pass (dither) for Seevie.
+**Success Criteria**: transitions at 60fps; history works; keyboard accessible.
+**Tests**: router unit tests (hash ↔ station).
+**Status**: Complete
+
+## Stage 5: Radio audio
+**Goal**: opt-in "power" toggle; Web Audio synthesized squelch tail + key-up chirp on station change (≥100 ms, peak ≈ −3 dB); muted by default; respects `prefers-reduced-motion`.
+**Success Criteria**: cues audible and radio-like; no autoplay violations.
+**Tests**: cue envelope generator unit tests (duration, peak).
+**Status**: Complete
+
+## Stage 6: About, contact, polish, ship
+**Goal**: particle portrait (avatar → point relief), timeline, contact popover (`popover`, anchor positioning), OG image, favicon, perf budget, a11y pass, `pnpm build` output ready for Cloudflare Pages/Vercel.
+**Success Criteria**: Lighthouse a11y ≥ 95; LCP < 2.5 s on fast 3G with WebGPU deferred; keyboard nav complete.
+**Tests**: build passes; smoke test via Playwright screenshot.
+**Status**: Complete
+
+## Stage 7: Live preview (Vercel)
+**Goal**: deploy to a Vercel preview URL, in place of running locally, so the site can be reviewed on any device.
+**Success Criteria**: `vercel` CLI deploy succeeds; preview URL renders the hero in WebGPU.
+**Tests**: manual smoke on the preview URL.
+**Status**: Complete

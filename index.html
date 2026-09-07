@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Jared Walters — receiver</title>
+    <meta name="description" content="Jared Walters is a full-stack engineer in Los Angeles who builds agent harnesses, voice loops, native apps and the infrastructure under them. Tune through the stations." />
+    <meta name="theme-color" content="#0b0a0c" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:title" content="Jared Walters — receiver" />
+    <meta property="og:description" content="Seven stations. Seevie, Ting Radio, Thereabouts, Vela, Executor, Aleph, Flea." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300..700&family=Geist+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles/tokens.css" />
+    <link rel="stylesheet" href="/src/styles/base.css" />
+    <link rel="stylesheet" href="/src/styles/tuner.css" />
+    <link rel="stylesheet" href="/src/styles/stations.css" />
+    <link rel="stylesheet" href="/src/styles/dossier.css" />
+    <link rel="stylesheet" href="/src/styles/about.css" />
+  </head>
+  <body>
+    <canvas id="field" class="field" aria-hidden="true"></canvas>
+    <a class="skip" href="#stations">Skip to stations</a>
+
+    <header class="masthead">
+      <a class="masthead__mark" href="#top" aria-label="Top">
+        <span class="masthead__initials">JW</span>
+        <span class="masthead__status" id="status" aria-live="polite">acquiring</span>
+      </a>
+      <nav class="masthead__nav" aria-label="Sections">
+        <a href="#stations">Stations</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="power" id="power" type="button" aria-pressed="false">
+        <span class="power__lamp" aria-hidden="true"></span>
+        <span class="power__label">Audio off</span>
+      </button>
+    </header>
+
+    <div class="tuner" id="tuner" role="status" aria-label="Tuner">
+      <div class="tuner__readout">
+        <span class="tuner__freq" id="freq">000.000</span>
+        <span class="tuner__band" id="band">MHz</span>
+      </div>
+      <div class="tuner__dial" aria-hidden="true">
+        <div class="tuner__ticks" id="ticks"></div>
+        <div class="tuner__needle"></div>
+      </div>
+      <div class="tuner__call">
+        <span class="tuner__label">callsign</span>
+        <span class="tuner__callsign" id="callsign">CARRIER</span>
+      </div>
+      <div class="tuner__meter" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+    </div>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <p class="hero__eyebrow">Los Angeles · full-stack · hardware-curious</p>
+        <h1 class="hero__name"><span>Jared</span> <span>Walters</span></h1>
+        <p class="hero__lede">
+          I build the thing that builds the thing: agent harnesses, voice loops, native apps, and the infrastructure
+          under them. Deadly on the frontend, surgical on the backend.
+        </p>
+        <p class="hero__hint"><span class="hero__hint-key">scroll</span> to tune through seven stations</p>
+      </section>
+
+      <section class="stations" id="stations" aria-label="Stations"></section>
+
+      <section class="also" id="also">
+        <h2 class="also__title">Also on air</h2>
+        <ul class="also__list" id="also-list"></ul>
+      </section>
+
+      <section class="about" id="about">
+        <div class="about__portrait" aria-hidden="true"></div>
+        <div class="about__body">
+          <h2 class="about__title">About</h2>
+          <p class="about__lede">
+            Fullstack software engineer with a track record from scrappy startups to Fortune 500. I like the thing that
+            builds the thing as much as the final polish, and I have worked every layer from the browser to the
+            infrastructure running it.
+          </p>
+          <p class="about__more">
+            Ex-Flatfile staff engineer, where I led the core product systems and built an engine for running untrusted
+            code safely. Before that, Disney and a few startups. Lately: agents you can talk to from across the room,
+            radios that read back sitreps in an Apollo voice, and native apps that turn a photo library into a sky.
+            Husband, father, runner, backyard barbecue experimenter.
+          </p>
+          <ol class="timeline" aria-label="Work history">
+            <li><span class="timeline__when">2024–25</span><span class="timeline__what">Senior Software Engineer, Spotter</span></li>
+            <li><span class="timeline__when">2020–24</span><span class="timeline__what">Staff Engineer, Flatfile</span></li>
+            <li><span class="timeline__when">2019–20</span><span class="timeline__what">Consulting, founders building a v1</span></li>
+            <li><span class="timeline__when">2016–19</span><span class="timeline__what">Senior Software Engineer, The Walt Disney Company</span></li>
+            <li><span class="timeline__when">2015–16</span><span class="timeline__what">Senior Software Engineer, Create TV</span></li>
+          </ol>
+          <ul class="skills" aria-label="Tools">
+            <li>TypeScript</li><li>Node</li><li>React</li><li>Swift</li><li>Python</li><li>Go</li><li>Postgres</li>
+            <li>Cloudflare</li><li>AWS</li><li>WebGPU</li><li>ESP32</li><li>Docker</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="contact" id="contact">
+        <h2 class="contact__title">Go ahead, over.</h2>
+        <p class="contact__lede">Founders with deep domain experience who need a v1, teams that need velocity, or anyone with a strange piece of hardware and a plan.</p>
+        <div class="contact__actions">
+          <a class="button button--primary" href="mailto:me@jaredwalte.rs">me@jaredwalte.rs</a>
+          <button class="button" type="button" popovertarget="channels" id="channels-anchor">Other channels</button>
+          <div class="channels" id="channels" popover>
+            <a href="https://github.com/iamjaredwalters" rel="me">GitHub</a>
+            <a href="https://www.linkedin.com/in/jaredwalters/" rel="me">LinkedIn</a>
+            <a href="https://x.com/iamjaredwalters" rel="me">X</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>© 2026 Jared Walters. Built with WebGPU compute, TSL, and CSS that shipped this year. Devices modeled in Blender.</p>
+      <p class="footer__backend" id="backend"></p>
+    </footer>
+
+    <dialog class="dossier" id="dossier" aria-labelledby="dossier-title">
+      <div class="dossier__frame">
+        <header class="dossier__head">
+          <div class="dossier__freq"><span id="dossier-freq"></span> <span id="dossier-band"></span> · <span id="dossier-callsign"></span></div>
+          <button class="dossier__close" type="button" id="dossier-close" aria-label="Close dossier">Close <kbd>esc</kbd></button>
+        </header>
+        <div class="dossier__body">
+          <h2 class="dossier__title" id="dossier-title"></h2>
+          <p class="dossier__pitch" id="dossier-pitch"></p>
+          <p class="dossier__brief" id="dossier-brief"></p>
+          <ul class="dossier__details" id="dossier-details"></ul>
+          <div class="dossier__meta">
+            <ul class="dossier__stack" id="dossier-stack" aria-label="Stack"></ul>
+            <p class="dossier__year" id="dossier-year"></p>
+            <p class="dossier__links" id="dossier-links"></p>
+          </div>
+        </div>
+        <nav class="dossier__nav" aria-label="Neighboring stations">
+          <button type="button" id="dossier-prev" class="dossier__step">← prev station</button>
+          <button type="button" id="dossier-next" class="dossier__step">next station →</button>
+        </nav>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

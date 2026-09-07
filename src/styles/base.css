@@ -1,0 +1,323 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--masthead-h) + var(--tuner-h));
+  scroll-snap-type: y proximity;
+  interpolate-size: allow-keywords;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  font-weight: 350;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-box: trim-both cap alphabetic;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+kbd {
+  font: 500 0.7em var(--font-mono);
+  border: 1px solid var(--line);
+  padding: 0.1em 0.4em;
+  border-radius: 0.3em;
+  corner-shape: squircle;
+}
+
+.field {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.5rem 0.9rem;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 0.5rem;
+  text-decoration: none;
+}
+
+.skip:focus {
+  top: 1rem;
+}
+
+.masthead {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 20;
+  height: var(--masthead-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: var(--gutter);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(to bottom, oklch(from var(--ink) l c h / 0.97), oklch(from var(--ink) l c h / 0.88));
+}
+
+.masthead__mark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.masthead__initials {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.35rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.masthead__status {
+  color: var(--muted);
+}
+
+.masthead__status::before {
+  content: '● ';
+  color: var(--accent);
+  animation: blink 1.4s steps(2, jump-none) infinite;
+}
+
+.masthead--locked .masthead__status::before {
+  animation: none;
+}
+
+@keyframes blink {
+  to {
+    opacity: 0.2;
+  }
+}
+
+.masthead__nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.masthead__nav a {
+  text-decoration: none;
+  color: var(--paper-2);
+}
+
+.masthead__nav a:hover {
+  color: var(--paper);
+}
+
+@media (width < 40rem) {
+  .masthead__nav {
+    display: none;
+  }
+}
+
+.power {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--paper-2);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  transition: border-color var(--dur), color var(--dur);
+}
+
+.power:hover {
+  border-color: var(--paper-2);
+  color: var(--paper);
+}
+
+.power__lamp {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--ink-3);
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background var(--dur), box-shadow var(--dur);
+}
+
+.power[aria-pressed='true'] .power__lamp {
+  background: var(--accent);
+  box-shadow: 0 0 0.6rem var(--glow);
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+section {
+  scroll-snap-align: start;
+}
+
+.hero {
+  min-height: 100dvh;
+  display: grid;
+  align-content: end;
+  gap: 1.25rem;
+  padding: calc(var(--masthead-h) + var(--tuner-h) + 2rem) var(--gutter) clamp(3rem, 10vh, 7rem);
+}
+
+.hero__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hero__name {
+  font-size: clamp(4rem, 15vw, 13rem);
+  font-size: --fluid(4rem, 13rem);
+  line-height: 0.86;
+  display: grid;
+}
+
+.hero__name span:last-child {
+  font-style: italic;
+  color: var(--accent);
+  padding-inline-start: 0.15em;
+  transition: color 900ms var(--ease-out);
+}
+
+.hero__lede {
+  max-width: var(--measure);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  color: var(--paper-2);
+}
+
+.hero__hint {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.hero__hint-key {
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper);
+  font: 500 0.9rem var(--font-mono);
+  letter-spacing: 0.02em;
+  padding: 0.85rem 1.3rem;
+  border-radius: 0.9rem;
+  corner-shape: squircle;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--dur), border-color var(--dur), color var(--dur), translate 300ms var(--ease-out);
+}
+
+.button:hover {
+  border-color: var(--accent);
+  translate: 0 -1px;
+}
+
+.button--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.button--primary:hover {
+  color: var(--ink);
+  background: oklch(from var(--accent) calc(l + 0.06) c h);
+}
+
+.footer {
+  position: relative;
+  z-index: 1;
+  padding: 2rem var(--gutter) 3rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.footer p {
+  max-width: 60ch;
+}

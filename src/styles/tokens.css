@@ -1,0 +1,59 @@
+@property --hue {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 38;
+}
+
+@property --signal {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --tune {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+@function --fluid(--min, --max, --from: 24rem, --to: 90rem) {
+  result: clamp(var(--min), calc(var(--min) + (var(--max) - var(--min)) * ((100vw - var(--from)) / (var(--to) - var(--from)))), var(--max));
+}
+
+:root {
+  color-scheme: dark;
+  --hue: 38;
+  --ink: oklch(14% 0.008 300);
+  --ink-2: oklch(19% 0.01 300);
+  --ink-3: oklch(26% 0.012 300);
+  --paper: oklch(93% 0.02 80);
+  --paper-2: oklch(78% 0.02 80);
+  --muted: oklch(62% 0.018 80);
+  --line: oklch(from var(--paper) l c h / 0.14);
+  --accent: oklch(78% 0.17 var(--hue));
+  --accent-soft: oklch(from var(--accent) l c h / 0.18);
+  --accent-ink: oklch(from var(--accent) 22% 0.06 h);
+  --glow: oklch(from var(--accent) l c h / 0.5);
+
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Times New Roman', serif;
+  --font-body: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+  --gutter: clamp(1.25rem, 5vw, 5rem);
+  --measure: 46ch;
+  --masthead-h: 3.5rem;
+  --tuner-h: 4.25rem;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-radio: linear(0, 0.1 5%, 0.9 22%, 1.04 32%, 0.98 45%, 1);
+  --dur: 600ms;
+
+  transition: --hue 900ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+    transition: none;
+  }
+}
