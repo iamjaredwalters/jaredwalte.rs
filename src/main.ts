@@ -1,7 +1,7 @@
 import { Radio } from '@/audio/radio';
 import { ALSO_ON_AIR, STATIONS, type Station } from '@/data/stations';
 import { loadCloud } from '@/field/cloud';
-import { Field, type TargetOptions } from '@/field/engine';
+import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
 import { PROCEDURAL } from '@/field/targets';
 import { Dossier } from '@/ui/dossier';
@@ -23,10 +23,10 @@ function must<T extends Element>(selector: string): T {
   return node;
 }
 
-const zones = new Map<string, { slot: number; station: Station | null; framing: () => { offsetX: number; offsetY: number } }>();
+const zones = new Map<string, { slot: number; station: Station | null; framing: () => Framing }>();
 
 function stationFraming() {
-  return wide.matches ? { offsetX: 0.95, offsetY: -0.05 } : { offsetX: 0, offsetY: 0.45 };
+  return wide.matches ? { offsetX: 0.95, offsetY: -0.05, zoom: 1 } : { offsetX: 0, offsetY: 0.32, zoom: 1.25 };
 }
 
 async function boot(): Promise<void> {
@@ -43,10 +43,10 @@ async function boot(): Promise<void> {
   also.dataset.zone = 'shell';
   contact.dataset.zone = 'contact';
 
-  zones.set('carrier', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: wide.matches ? 0.42 : 0.7 }) });
-  zones.set('portrait', { slot: SLOT.portrait, station: null, framing: () => (wide.matches ? { offsetX: -0.85, offsetY: 0 } : { offsetX: 0, offsetY: 0.55 }) });
-  zones.set('shell', { slot: SLOT.shell, station: null, framing: () => ({ offsetX: 0, offsetY: 0 }) });
-  zones.set('contact', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: -0.2 }) });
+  zones.set('carrier', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: wide.matches ? 0.42 : 0.7, zoom: 1 }) });
+  zones.set('portrait', { slot: SLOT.portrait, station: null, framing: () => (wide.matches ? { offsetX: -0.85, offsetY: 0, zoom: 1 } : { offsetX: 0, offsetY: 0.5, zoom: 1.3 }) });
+  zones.set('shell', { slot: SLOT.shell, station: null, framing: () => ({ offsetX: 0, offsetY: 0, zoom: 1 }) });
+  zones.set('contact', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: -0.2, zoom: 1 }) });
   STATIONS.forEach((station, index) => zones.set(station.id, { slot: STATION_SLOT(index), station, framing: stationFraming }));
 
   const tuner = new Tuner(
@@ -72,14 +72,17 @@ async function boot(): Promise<void> {
   });
 
   const canvas = must<HTMLCanvasElement>('#field');
-  const hasWebGPU = 'gpu' in navigator;
+  const forceWebGL = new URLSearchParams(location.search).has('gl');
+  const hasWebGPU = 'gpu' in navigator && !forceWebGL;
   const particleCount = hasWebGPU ? (coarse ? 131072 : 262144) : 65536;
-  const field = new Field({
+  const { Field: FieldEngine } = await import('@/field/engine');
+  const field = new FieldEngine({
     canvas,
     particleCount,
     targetPoints: TARGET_POINTS,
     targetCount: TARGET_COUNT,
     reducedMotion,
+    forceWebGL,
   });
   (window as unknown as { __field: Field }).__field = field;
   must<HTMLElement>('#backend').textContent = `${field.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'} · ${particleCount.toLocaleString()} particles`;
@@ -184,7 +187,7 @@ async function boot(): Promise<void> {
         if (!zone) return;
         active = station.id;
         document.documentElement.style.setProperty('--hue', String(station.hue));
-        field.setFraming(wide.matches ? { offsetX: 1.1, offsetY: 0 } : { offsetX: 0, offsetY: 0.9 });
+        field.setFraming(wide.matches ? { offsetX: 1.1, offsetY: 0, zoom: 1 } : { offsetX: 0, offsetY: 0.85, zoom: 1.35 });
         field.tuneTo(zone.slot);
         field.pulse(0.6);
         tuner.show(station, true);

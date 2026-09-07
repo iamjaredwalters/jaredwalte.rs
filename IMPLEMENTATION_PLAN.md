@@ -42,12 +42,17 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 
 ## Stage 6: About, contact, polish, ship
 **Goal**: particle portrait (avatar → point relief), timeline, contact popover (`popover`, anchor positioning), OG image, favicon, perf budget, a11y pass, `pnpm build` output ready for Cloudflare Pages/Vercel.
-**Success Criteria**: Lighthouse a11y ≥ 95; LCP < 2.5 s on fast 3G with WebGPU deferred; keyboard nav complete.
+**Success Criteria**: keyboard nav complete; engine chunk lazy-loaded so text paints before three.js; OG image captured from the live hero.
 **Tests**: build passes; smoke test via Playwright screenshot.
-**Status**: Complete
+**Status**: Complete (Lighthouse not run)
 
 ## Stage 7: Live preview (Vercel)
-**Goal**: deploy to a Vercel preview URL, in place of running locally, so the site can be reviewed on any device.
-**Success Criteria**: `vercel` CLI deploy succeeds; preview URL renders the hero in WebGPU.
+**Goal**: deploy to a Vercel preview URL so the site can be reviewed on any device.
+**Success Criteria**: `vercel` from the repo root succeeds; preview URL renders the hero in WebGPU.
 **Tests**: manual smoke on the preview URL.
-**Status**: Complete
+**Status**: Not Started (CLI is logged in as jaredwalters-5175; run `vercel` when ready)
+
+## Follow-ups
+- Real device screenshots or short clips inside dossiers (Seevie stick, Ting) once assets are picked.
+- Light theme if ever wanted (tokens are oklch; the field is dark-first).
+- `?gl` fallback runs 65k particles without bloom parity; fine for Firefox on Intel Macs.

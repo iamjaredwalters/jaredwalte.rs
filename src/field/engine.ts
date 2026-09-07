@@ -43,6 +43,7 @@ export interface TargetOptions {
 export interface Framing {
   offsetX: number;
   offsetY: number;
+  zoom: number;
 }
 
 interface RegisteredTarget {
@@ -96,13 +97,13 @@ export class Field {
   private blending = false;
   private blendStart = 0;
   private blendDuration = 1.8;
-  private framing: Framing = { offsetX: 0, offsetY: 0 };
+  private framing: Framing = { offsetX: 0, offsetY: 0, zoom: 1 };
   private targetDistance = DEFAULT_TARGET.distance;
   private spinAngle = 0;
   private pointerNdc = new THREE.Vector2(0, 0);
   private pointerActive = false;
   private idleFrames = 0;
-  private readonly clock = new THREE.Clock();
+  private readonly timer = new THREE.Timer();
   private readonly world = new THREE.Vector3();
   private disposed = false;
 
@@ -113,6 +114,10 @@ export class Field {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.backend === 'webgpu' ? 1.5 : 1));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
+    if (this.backend === 'webgl') {
+      this.uBrightness.value = 0.3;
+      this.uSize.value = 0.011;
+    }
 
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
     this.camera.position.set(0, 0, DEFAULT_TARGET.distance);
@@ -350,7 +355,8 @@ export class Field {
 
   private frame(): void {
     if (this.disposed) return;
-    const dt = Math.min(0.05, this.clock.getDelta());
+    this.timer.update();
+    const dt = Math.min(0.05, this.timer.getDelta());
     if (this.blending) {
       const t = this.blendProgress();
       this.uBlend.value = t;
@@ -378,7 +384,7 @@ export class Field {
     this.sprite.position.y += (wantY - this.sprite.position.y) * k;
     this.sprite.rotation.y += (spin + px * 0.35 * motion - this.sprite.rotation.y) * k;
     this.sprite.rotation.x += (target.pitch - py * target.tilt * motion - this.sprite.rotation.x) * k;
-    this.camera.position.z += (this.targetDistance - this.camera.position.z) * k;
+    this.camera.position.z += (this.targetDistance * this.framing.zoom - this.camera.position.z) * k;
 
     if (this.pointerActive && motion) {
       const fovY = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;

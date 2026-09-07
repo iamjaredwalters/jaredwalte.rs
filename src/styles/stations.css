@@ -219,7 +219,8 @@
   .station__artifact {
     display: none;
   }
-  .station__brief {
+  .station__brief,
+  .station__stack {
     display: none;
   }
 }
