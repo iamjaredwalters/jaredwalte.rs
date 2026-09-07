@@ -24,9 +24,10 @@ body {
   background: var(--ink);
   color: var(--paper);
   font-family: var(--font-body);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.55;
-  font-weight: 350;
+  font-weight: 400;
+  font-stretch: 100%;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: clip;
@@ -58,12 +59,20 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-weight: 400;
-  line-height: 0.95;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  font-stretch: 112%;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
   text-wrap: balance;
   text-box: trim-both cap alphabetic;
   margin: 0;
+}
+
+.display-wide {
+  font-weight: 900;
+  font-stretch: 125%;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 p {
@@ -131,10 +140,10 @@ kbd {
 
 .masthead__initials {
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: 1.35rem;
-  text-transform: none;
-  letter-spacing: 0;
+  font-weight: 900;
+  font-stretch: 125%;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
 }
 
 .masthead__status {
@@ -239,17 +248,39 @@ section {
 }
 
 .hero__name {
-  font-size: clamp(4rem, 15vw, 13rem);
-  font-size: --fluid(4rem, 13rem);
-  line-height: 0.86;
+  font-size: clamp(3rem, 9.5vw, 9.5rem);
+  font-size: --fluid(3rem, 9.5rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  text-transform: uppercase;
+  line-height: 0.84;
+  letter-spacing: -0.03em;
   display: grid;
+  animation: compress linear both;
+  animation-timeline: scroll(root);
+  animation-range: 0 90vh;
+}
+
+@keyframes compress {
+  from {
+    font-stretch: 125%;
+    letter-spacing: -0.03em;
+  }
+  to {
+    font-stretch: 62%;
+    letter-spacing: 0.02em;
+  }
 }
 
 .hero__name span:last-child {
-  font-style: italic;
   color: var(--accent);
-  padding-inline-start: 0.15em;
   transition: color 900ms var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__name {
+    animation: none;
+  }
 }
 
 .hero__lede {

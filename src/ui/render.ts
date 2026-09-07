@@ -28,6 +28,7 @@ export function renderStations(container: HTMLElement, stations: Station[]): HTM
     article.dataset.station = station.id;
     article.dataset.zone = station.id;
     article.style.setProperty('--hue', String(station.hue));
+    article.style.setProperty('--chars', String(station.name.length));
 
     const text = el('div', 'station__text');
     const meta = el('p', 'station__index');

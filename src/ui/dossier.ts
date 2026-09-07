@@ -77,6 +77,7 @@ export class Dossier {
     const source = document.querySelector<HTMLElement>(`#station-${id} .station__name`);
     if (source && !wasOpen) source.style.viewTransitionName = NAME;
     this.els.dialog.style.setProperty('--hue', String(station.hue));
+    this.els.dialog.style.setProperty('--chars', String(station.name.length));
     if (!pushHash) document.getElementById(`station-${id}`)?.scrollIntoView({ block: 'start', behavior: 'instant' });
     document.documentElement.classList.add('dossier-open');
     this.hooks.onOpen(station);

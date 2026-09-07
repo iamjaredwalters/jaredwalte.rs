@@ -18,7 +18,9 @@
 
 .about__title {
   font-size: clamp(3rem, 6vw, 5rem);
-  font-style: italic;
+  font-weight: 900;
+  font-stretch: 125%;
+  text-transform: uppercase;
   color: var(--accent);
 }
 
@@ -96,9 +98,11 @@
 }
 
 .contact__title {
-  font-size: clamp(3rem, 9vw, 8rem);
-  font-size: --fluid(3rem, 8rem);
-  font-style: italic;
+  font-size: clamp(2.6rem, 7vw, 6.5rem);
+  font-size: --fluid(2.6rem, 6.5rem);
+  font-weight: 900;
+  font-stretch: 125%;
+  text-transform: uppercase;
 }
 
 .contact__lede {

@@ -17,6 +17,7 @@
 .station__text {
   display: grid;
   gap: 0.9rem;
+  container-type: inline-size;
   animation: station-in both var(--ease-out);
   animation-timeline: view();
   animation-range: entry 15% entry 55%;
@@ -60,22 +61,49 @@
 }
 
 .station__name {
-  font-size: clamp(3rem, 7vw, 6rem);
-  font-size: --fluid(3rem, 6rem);
+  --name-max: 4.75rem;
+  font-size: clamp(2.2rem, min(5.5vw, calc(100cqi / (var(--chars, 8) * 0.93))), var(--name-max));
+  font-weight: 900;
+  font-stretch: 118%;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
   view-transition-class: station-name;
+  animation: widen linear both;
+  animation-timeline: view();
+  animation-range: entry 0% cover 55%;
+}
+
+@keyframes widen {
+  from {
+    font-stretch: 70%;
+    letter-spacing: 0.01em;
+  }
+  to {
+    font-stretch: 118%;
+    letter-spacing: -0.03em;
+  }
 }
 
 .station__name em {
-  font-style: italic;
+  font-style: normal;
+  font-weight: 300;
   color: var(--accent);
 }
 
 .station__pitch {
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
-  line-height: 1.15;
+  font-weight: 300;
+  font-stretch: 105%;
+  font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--paper-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .station__name {
+    animation: none;
+  }
 }
 
 .station__brief {
@@ -206,7 +234,7 @@
     font-size: clamp(1.2rem, 2vw, 1.5rem);
   }
   .station__name {
-    font-size: clamp(2.6rem, 6vw, 5rem);
+    --name-max: 4rem;
   }
 }
 
@@ -235,7 +263,9 @@
 
 .also__title {
   font-size: clamp(2rem, 4vw, 3rem);
-  font-style: italic;
+  font-weight: 900;
+  font-stretch: 125%;
+  text-transform: uppercase;
 }
 
 .also__list {

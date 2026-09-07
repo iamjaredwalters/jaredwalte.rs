@@ -19,6 +19,7 @@
 
 html.dossier-open main,
 html.dossier-open .tuner,
+html.dossier-open .masthead,
 html.dossier-open .footer {
   filter: blur(8px);
   opacity: 0.35;
@@ -74,6 +75,7 @@ html.dossier-open .footer {
 .dossier__body {
   align-self: center;
   max-width: 40rem;
+  container-type: inline-size;
   max-height: 100%;
   overflow: auto;
   overscroll-behavior: contain;
@@ -84,21 +86,26 @@ html.dossier-open .footer {
 }
 
 .dossier__title {
-  font-size: clamp(3.5rem, 9vw, 8rem);
-  font-size: --fluid(3.5rem, 8rem);
+  font-size: clamp(2.4rem, min(7.5vw, calc(100cqi / (var(--chars, 8) * 0.93))), 6.5rem);
+  font-weight: 900;
+  font-stretch: 118%;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
   view-transition-class: station-name;
 }
 
 .dossier__title em {
-  font-style: italic;
+  font-style: normal;
+  font-weight: 300;
   color: var(--accent);
 }
 
 .dossier__pitch {
   font-family: var(--font-display);
-  font-style: italic;
-  font-size: clamp(1.4rem, 2.6vw, 2.1rem);
-  line-height: 1.15;
+  font-weight: 300;
+  font-stretch: 105%;
+  font-size: clamp(1.3rem, 2.3vw, 1.9rem);
+  line-height: 1.2;
   color: var(--paper-2);
 }
 
