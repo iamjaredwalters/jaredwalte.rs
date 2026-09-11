@@ -3,6 +3,7 @@ import { ALSO_ON_AIR, STATIONS, applyTint, type Station, type TintName } from '@
 import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
+import { followTint } from '@/ui/favicon';
 import portraitUrl from '@/assets/portrait.webp';
 import { morseMarks, signoffTarget } from '@/field/signoff';
 import { PROCEDURAL } from '@/field/targets';
@@ -198,6 +199,7 @@ async function boot(): Promise<void> {
     if (nearest.tint !== activeTint) {
       activeTint = nearest.tint;
       applyTint(document.documentElement, nearest.tint);
+      followTint(nearest.tint);
     }
     const stationIndex = nearest.station ? STATIONS.indexOf(nearest.station) : -1;
     tuner.dial({ from: from.readout, to: to.readout, t: state.t, signal: state.signal, nearest: nearest.readout }, Math.max(0, stationIndex), STATIONS.length);
@@ -267,6 +269,7 @@ async function boot(): Promise<void> {
         if (!zone) return;
         frozen = true;
         applyTint(document.documentElement, station.tint);
+        followTint(station.tint);
         field.setFraming(wide.matches ? { offsetX: 1.1, offsetY: 0, zoom: 1 } : { offsetX: 0, offsetY: 0.85, zoom: 1.35 });
         field.tuneTo(zone.slot);
         field.pulse(0.6);
