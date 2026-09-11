@@ -61,4 +61,4 @@ The Ting mic and the Seevie stick are modeled with primitives by `blender/build_
 
 ## Deploy
 
-Static output in `dist/`, intended for Cloudflare Pages: `pnpm build && wrangler pages deploy dist`. Hash routing, so no rewrites or functions are needed; brotli and hashed-asset caching come with the platform.
+Static output in `dist/`. Hosted on Vercel for now: pushes to `main` on `iamjaredwalters/jaredwalte.rs` deploy through the Vercel project, and `vercel.json` pins the Vite build so the dashboard preset does not matter. Hash routing, so no rewrites or functions are needed. The eventual move is Cloudflare Pages: `pnpm build && wrangler pages deploy dist`, then point the domain at the Pages hostname.
