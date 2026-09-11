@@ -16,6 +16,12 @@
   animation-range: entry 10% entry 45%;
 }
 
+@supports not (animation-timeline: scroll()) {
+  .about__body {
+    animation: none;
+  }
+}
+
 .about__title {
   font-size: clamp(3rem, 6vw, 5rem);
   font-weight: 900;

@@ -32,16 +32,31 @@ export interface DialControls {
 
 const TICK_COUNT = 160;
 
+export function supportsScrollTimeline(): boolean {
+  return typeof CSS !== 'undefined' && CSS.supports('animation-timeline', 'scroll()');
+}
+
 export class Tuner {
   private reading: DialReading | null = null;
   private flicker: number | null = null;
   private lastText = '';
+  private readonly nativeStrip = supportsScrollTimeline();
 
   constructor(
     private readonly els: TunerElements,
     private readonly reducedMotion: boolean,
   ) {
-    for (let i = 0; i < TICK_COUNT; i++) this.els.ticks.append(document.createElement('i'));
+    for (let i = 0; i < TICK_COUNT; i++) {
+      const tick = document.createElement('i');
+      tick.style.setProperty('--i', String(i + 1));
+      this.els.ticks.append(tick);
+    }
+    this.els.root.querySelectorAll<HTMLElement>('.tuner__meter i').forEach((bar, index) => bar.style.setProperty('--i', String(index + 1)));
+  }
+
+  setProgress(fraction: number): void {
+    if (this.nativeStrip) return;
+    this.els.ticks.style.translate = `${(-Math.min(1, Math.max(0, fraction)) * 100).toFixed(3)}% 0`;
   }
 
   markStations(fractions: number[]): void {

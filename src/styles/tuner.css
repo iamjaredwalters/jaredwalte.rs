@@ -102,6 +102,12 @@
   background: var(--paper-2);
 }
 
+@supports not (animation-timeline: scroll()) {
+  .tuner__ticks {
+    animation: none;
+  }
+}
+
 .tuner__ticks i[data-station] {
   height: 1.4rem;
   width: 2px;
@@ -152,19 +158,19 @@
   width: 4px;
   background: var(--accent);
   border-radius: 1px;
-  height: calc(0.3rem + sibling-index() * 0.15rem);
-  opacity: clamp(0.12, calc(var(--signal) * 7 - sibling-index() + 1), 1);
+  height: calc(0.3rem + var(--i, 1) * 0.15rem);
+  opacity: clamp(0.12, calc(var(--signal) * 7 - var(--i, 1) + 1), 1);
   transition: opacity 120ms linear, background 400ms;
 }
 
 .tuner--locked .tuner__meter i {
   animation: meter 1.6s var(--ease-radio) infinite alternate;
-  animation-delay: calc(sibling-index() * -140ms);
+  animation-delay: calc(var(--i, 1) * -140ms);
 }
 
 .tuner--sweeping .tuner__meter i:nth-child(-n + 3) {
   animation: meter 220ms steps(3, jump-none) infinite alternate;
-  animation-delay: calc(sibling-index() * -37ms);
+  animation-delay: calc(var(--i, 1) * -37ms);
 }
 
 @keyframes meter {

@@ -41,7 +41,11 @@ export function renderStations(container: HTMLElement, stations: Station[]): HTM
     const pitch = el('p', 'station__pitch', station.pitch);
     const brief = el('p', 'station__brief', station.brief);
     const details = el('ul', 'station__details');
-    for (const detail of station.details) details.append(el('li', undefined, detail));
+    station.details.forEach((detail, index) => {
+      const item = el('li', undefined, detail);
+      item.style.setProperty('--i', String(index + 1));
+      details.append(item);
+    });
     const stack = el('ul', 'station__stack');
     for (const item of station.stack) stack.append(el('li', undefined, item));
     const actions = el('div', 'station__actions');

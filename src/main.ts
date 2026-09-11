@@ -201,6 +201,8 @@ async function boot(): Promise<void> {
     }
     const stationIndex = nearest.station ? STATIONS.indexOf(nearest.station) : -1;
     tuner.dial({ from: from.readout, to: to.readout, t: state.t, signal: state.signal, nearest: nearest.readout }, Math.max(0, stationIndex), STATIONS.length);
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    tuner.setProgress(scrollable > 0 ? window.scrollY / scrollable : 0);
     currentZone = nearest.id;
     radio.setSignal(nearest.id, state.signal);
     const wasLocked = locked;

@@ -73,6 +73,14 @@
   animation-range: entry 0% cover 55%;
 }
 
+@supports not (animation-timeline: scroll()) {
+  .station__name,
+  .station__text,
+  .station__details li {
+    animation: none;
+  }
+}
+
 @keyframes widen {
   from {
     font-stretch: 70%;
@@ -125,7 +133,7 @@
   padding-inline-start: 1.4rem;
   position: relative;
   animation: detail-in 700ms var(--ease-out) both;
-  animation-delay: calc(sibling-index() * 90ms);
+  animation-delay: calc(var(--i, 1) * 90ms);
   animation-timeline: view();
   animation-range: entry 30% entry 70%;
 }

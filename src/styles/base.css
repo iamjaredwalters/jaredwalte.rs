@@ -283,6 +283,12 @@ section {
   }
 }
 
+@supports not (animation-timeline: scroll()) {
+  .hero__name {
+    animation: none;
+  }
+}
+
 .hero__lede {
   max-width: var(--measure);
   font-size: clamp(1.05rem, 1.5vw, 1.35rem);
