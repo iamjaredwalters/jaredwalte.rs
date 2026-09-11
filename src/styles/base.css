@@ -7,14 +7,12 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--masthead-h) + var(--tuner-h));
-  scroll-snap-type: y proximity;
   interpolate-size: allow-keywords;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-    scroll-snap-type: none;
   }
 }
 
@@ -225,10 +223,6 @@ kbd {
 main {
   position: relative;
   z-index: 1;
-}
-
-section {
-  scroll-snap-align: start;
 }
 
 .hero {

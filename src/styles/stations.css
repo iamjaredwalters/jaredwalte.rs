@@ -10,7 +10,6 @@
   align-items: center;
   gap: 2rem;
   padding: calc(var(--masthead-h) + var(--tuner-h)) var(--gutter) 4rem;
-  scroll-snap-align: start;
   container-type: inline-size;
 }
 

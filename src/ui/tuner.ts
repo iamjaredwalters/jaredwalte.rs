@@ -52,19 +52,17 @@ export class Tuner {
     this.els.root.querySelectorAll<HTMLElement>('.tuner__meter i').forEach((bar, index) => bar.style.setProperty('--i', String(index + 1)));
   }
 
-  setProgress(fraction: number, detent: number | null): void {
-    this.stripTarget = Math.min(1, Math.max(0, detent ?? fraction));
-    if (this.reducedMotion || detent === null) {
-      this.stripCurrent = detent === null ? this.stripTarget : this.stripCurrent;
-    }
+  setProgress(fraction: number): void {
+    this.stripTarget = Math.min(1, Math.max(0, fraction));
+    if (this.reducedMotion) this.stripCurrent = this.stripTarget;
     if (this.stripLoop === null) this.stripLoop = requestAnimationFrame(() => this.stepStrip());
   }
 
   private stepStrip(): void {
     this.stripLoop = null;
     const delta = this.stripTarget - this.stripCurrent;
-    this.stripCurrent = Math.abs(delta) < 0.0002 ? this.stripTarget : this.stripCurrent + delta * 0.18;
-    this.els.ticks.style.translate = `${(-this.stripCurrent * 100).toFixed(3)}% 0`;
+    this.stripCurrent = Math.abs(delta) < 0.00005 ? this.stripTarget : this.stripCurrent + delta * 0.45;
+    this.els.ticks.style.translate = `${(-this.stripCurrent * 100).toFixed(4)}% 0`;
     if (this.stripCurrent !== this.stripTarget) this.stripLoop = requestAnimationFrame(() => this.stepStrip());
   }
 

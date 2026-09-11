@@ -205,7 +205,7 @@ async function boot(): Promise<void> {
     const wasLocked = locked;
     locked = nextLock(locked, state.signal);
     const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    tuner.setProgress(scrollable > 0 ? window.scrollY / scrollable : 0, locked && scrollable > 0 ? nearest.top / scrollable : null);
+    tuner.setProgress(scrollable > 0 ? lerp(from.top, to.top, state.t) / scrollable : 0);
     if (locked && !wasLocked) {
       lockedZone = nearest.id;
       radio.lock(nearest.id);
