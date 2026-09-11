@@ -69,11 +69,13 @@ export class Tuner {
   }
 
   markStations(fractions: number[]): void {
-    const ticks = this.els.ticks.children;
-    for (const tick of ticks) tick.removeAttribute('data-station');
+    this.els.ticks.querySelectorAll('.tuner__mark').forEach((mark) => mark.remove());
     fractions.forEach((fraction, index) => {
-      const at = Math.round(fraction * (TICK_COUNT - 1));
-      ticks[at]?.setAttribute('data-station', String(index));
+      const mark = document.createElement('b');
+      mark.className = 'tuner__mark';
+      mark.dataset.station = String(index);
+      mark.style.left = `${(fraction * 100).toFixed(4)}%`;
+      this.els.ticks.append(mark);
     });
   }
 
