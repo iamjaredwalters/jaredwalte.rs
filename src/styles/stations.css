@@ -157,26 +157,6 @@
   }
 }
 
-.station__stack {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.station__stack li {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.03em;
-  padding: 0.3rem 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 0.6rem;
-  corner-shape: superellipse(1.6);
-  color: var(--paper-2);
-}
-
 .station__actions {
   display: flex;
   flex-wrap: wrap;
@@ -254,8 +234,7 @@
   .station__artifact {
     display: none;
   }
-  .station__brief,
-  .station__stack {
+  .station__brief {
     display: none;
   }
 }

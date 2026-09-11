@@ -46,8 +46,6 @@ export function renderStations(container: HTMLElement, stations: Station[]): HTM
       item.style.setProperty('--i', String(index + 1));
       details.append(item);
     });
-    const stack = el('ul', 'station__stack');
-    for (const item of station.stack) stack.append(el('li', undefined, item));
     const actions = el('div', 'station__actions');
     const open = el('button', 'button station__open', 'Open dossier');
     open.type = 'button';
@@ -60,7 +58,7 @@ export function renderStations(container: HTMLElement, stations: Station[]): HTM
       a.rel = 'noopener';
       actions.append(a);
     }
-    text.append(meta, title, pitch, brief, details, stack, actions);
+    text.append(meta, title, pitch, brief, details, actions);
 
     const artifact = el('div', 'station__artifact');
     const caption = el('p', 'station__caption');

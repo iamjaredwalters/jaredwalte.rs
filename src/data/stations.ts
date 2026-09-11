@@ -60,9 +60,9 @@ export const STATIONS: Station[] = [
     brief:
       'A presence layer where humans, devices and software are addressable peers. A thumb-drive-sized push-to-talk stick, an iPhone app, a Mac companion and any coding agent all join the same room. An agent can ask a human a question and block until someone answers.',
     details: [
-      'M5StickS3 firmware streams audio over WebSocket to a Cloudflare Durable Object that holds the room, bridges Gemini Live, and pushes Lock Screen Live Activities.',
-      'The iPhone app renders every agent workspace as a Metal particle field: embers for tool calls, sediment when the turn is done, a card when it needs you.',
-      'Cards are the primitive: POST a question, long-poll for the answer. Permission prompts from headless Claude Code ride the same lane.',
+      'The stick streams your voice to a room in the cloud that every device and agent shares, and a Lock Screen notice arrives when something needs you.',
+      'The iPhone app draws each agent\'s work as particles: embers while it uses tools, sediment when the turn is done, a card when it needs an answer.',
+      'Everything is a card: post a question, wait for the answer. Permission prompts from a headless Claude Code ride the same lane.',
     ],
     stack: ['ESP32-S3 / C++', 'Cloudflare Workers + DO + D1', 'Gemini Live', 'SwiftUI + Metal', 'Node'],
     year: '2025–26',
@@ -81,13 +81,13 @@ export const STATIONS: Station[] = [
     brief:
       'Squeeze a Teenage Engineering Ting mic and talk; the words land in Claude Code. When the turn ends, a radio voice reads back a twenty-word sitrep with a callsign and "over". The voice is Charlie Duke, Apollo 11\'s CAPCOM, cloned from the public-domain landing loop. Everything runs on the Mac.',
     details: [
-      'Half-duplex from line noise: the mic passes a carrier only while squeezed, so handle state is a threshold on RMS, no extra hardware.',
-      'The Ting\'s buttons emit tones; a detector turns them into keystrokes. White is the affirmative when the radio asks for authorization.',
-      'A small DSP chain adds band-limit, drive, static, roger beep and squelch. The short acks are Duke\'s actual 1969 lines.',
+      'Squeezing the mic is the whole protocol: it only carries signal while held, so the software tells talk from listen by loudness alone, no extra hardware.',
+      'The mic\'s buttons play tones and the software hears them as keystrokes. White means yes when the radio asks permission.',
+      'A small audio chain adds static, squelch and the roger beep. The short acknowledgements are Charlie Duke\'s actual 1969 lines.',
     ],
     stack: ['Python', 'Parakeet STT', 'LuxTTS voice clone', 'Claude Code hooks', 'menu bar app'],
     year: '2026',
-    links: [{ label: 'GitHub', href: 'https://github.com/iamjaredwalters/ting-radio' }],
+    links: [],
   },
   {
     id: 'thereabouts',
@@ -102,13 +102,13 @@ export const STATIONS: Station[] = [
     brief:
       'An iPhone app that maps each Spotify save to the place your camera says you were when you found it. No location tracking: it correlates save timestamps against your photo library\'s GPS trail and says how sure it is in plain language.',
     details: [
-      'A binary-search correlation engine over PhotoKit; confidence is expressed as words ("you were right here"), not error bars.',
-      'Spotify OAuth bounces through a Cloudflare Worker on an invisible domain to satisfy Apple\'s Universal Links.',
-      'SwiftData on device; nothing leaves the phone except the OAuth handshake.',
+      'Each save is matched against your photo timestamps, and the app says how sure it is in words ("you were right here"), not error bars.',
+      'Each pin opens the song next to the photos that placed it, and a timeline scrubs through your eras.',
+      'Everything stays on the phone except that one sign-in handshake.',
     ],
     stack: ['Swift / SwiftUI', 'PhotoKit', 'SwiftData', 'Cloudflare Worker'],
     year: '2026',
-    links: [{ label: 'GitHub', href: 'https://github.com/iamjaredwalters/thereabouts' }],
+    links: [],
   },
   {
     id: 'vela',
@@ -123,9 +123,9 @@ export const STATIONS: Station[] = [
     brief:
       'Clusters the places in your photo library into a constellation you turn in your hands: a matte pastel diorama on a RealityKit dome, home at the zenith, true compass bearings, distance compressed on a log scale so a trip abroad and the corner store share a sky.',
     details: [
-      'Azimuthal placement with real bearings; magnitude from visit count on a Pogson curve.',
-      'Constellation lines from a relative-neighborhood graph, so the sky reads as figures instead of a hairball.',
-      '100k photo locations cluster in under a second in release builds.',
+      'Places sit at their real compass bearing from home, and the more often you visit, the brighter the star, on the same curve astronomers use.',
+      'Constellation lines only join near neighbours, so the sky reads as figures instead of a hairball.',
+      'A hundred thousand photo locations cluster in under a second.',
     ],
     stack: ['Swift', 'RealityKit', 'PhotoKit', 'XcodeGen'],
     year: '2026',
@@ -144,9 +144,9 @@ export const STATIONS: Station[] = [
     brief:
       'Point your phone at a flyer, an invite, a whiteboard or a screenshot and get back a calendar event with the date, time and place filled in, ready to save. A shipped product, now moving from a web subscription to a one-time purchase on the App Store.',
     details: [
-      'One Lambda serves both the HTTP API and the S3-triggered image pipeline, all of it declared in CloudFormation.',
-      'Gemini reads the image; Hono, Supabase auth with Google sign-in, and a React 19 front end handle the rest.',
-      'An Expo iOS app is in progress for the paid version.',
+      'One serverless function handles both the app\'s requests and every uploaded image, and the whole deployment is described in a single file.',
+      'A vision model reads the picture; a small web stack with Google sign-in handles the rest.',
+      'An iPhone app is in progress for the paid version.',
     ],
     stack: ['Hono on AWS Lambda', 'S3 + CloudFront', 'Supabase', 'Gemini', 'React 19', 'Expo'],
     year: '2025–26',
@@ -165,9 +165,9 @@ export const STATIONS: Station[] = [
     brief:
       'A local dashboard that answers the question by mining Claude Code\'s own transcripts. No timers, no trackers. It archives the raw sessions before they are pruned, then bills time as the union of overlapping sessions so parallel work is never double-counted.',
     details: [
-      'Node CLI indexes JSONL transcripts into SQLite; a Vite + React front end reads it on localhost.',
-      'Union-of-intervals billing across clients, per-day and per-repo rollups.',
-      'A pixel-devtools look: one accent, squared corners, a bitmap face.',
+      'A small command-line tool indexes the transcripts into a local database, and a web page reads it on your own machine.',
+      'Rollups by day, by repo and by client, so the number you bill is one glance away.',
+      'Every session comes with a resume command for the clipboard, so you land back in the same folder and conversation.',
     ],
     stack: ['Node', 'SQLite', 'React 19', 'Tailwind v4'],
     year: '2026',
@@ -186,9 +186,9 @@ export const STATIONS: Station[] = [
     brief:
       'A cel-shaded open world, 2 km on a side, with no race, laps or finish line. Nothing is downloaded: terrain, materials, the robot and the sound are all generated in code. The first build was a WebGPU snow sandbox with powder, crust, slush and ice that deform under the wheels.',
     details: [
-      'The on-screen jump predictor runs the same integrator as the physics, so the arc you see is the arc you get.',
-      'Cliffs terrace to exactly the jump height; the world is tuned around one verb.',
-      'Rendering graded against a written PBR checklist with evidence screenshots.',
+      'The jump arc drawn on screen uses the same maths as the physics, so the arc you see is the arc you get.',
+      'Cliffs step up in exact jump heights; the whole world is tuned around one verb.',
+      'Rendering was graded against a written checklist, with screenshots as evidence.',
     ],
     stack: ['Three.js', 'WebGPU', 'TypeScript', 'Playwright capture'],
     year: '2026',
@@ -199,7 +199,6 @@ export const STATIONS: Station[] = [
 export const ALSO_ON_AIR: StationLink[] = [
   { label: 'brewbot.app — which food truck is at the brewery tonight', href: 'https://brewbot.app' },
   { label: 'guyver.io — a 3D-printed EDC blade, sold one at a time', href: 'https://guyver.io' },
-  { label: 'tellusastral.com — the umbrella', href: 'https://tellusastral.com' },
 ];
 
 export function stationById(id: string): Station | undefined {

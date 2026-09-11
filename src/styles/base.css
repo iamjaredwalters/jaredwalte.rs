@@ -131,9 +131,14 @@ kbd {
 
 .masthead__mark {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
   text-decoration: none;
+}
+
+.masthead__initials,
+.masthead__status {
+  text-box: trim-both cap alphabetic;
 }
 
 .masthead__initials {
