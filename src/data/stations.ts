@@ -154,7 +154,7 @@ export const STATIONS: Station[] = [
   },
   {
     id: 'aleph',
-    callsign: 'LEDGER',
+    callsign: 'LOGBOOK',
     name: 'Aleph',
     frequency: '162.400',
     band: 'MHz',

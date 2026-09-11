@@ -13,7 +13,7 @@ Every station sits on a real allocation that matches the project (`frequencyNote
 | Thereabouts | FIX | 1575.420 | GPS L1, the carrier a phone fixes position from |
 | Vela | ZENITH | 1420.405 | The hydrogen line, radio astronomy's signature frequency |
 | add2cal | TIMECHECK | 10.000 | WWV, the NIST time-signal station |
-| Aleph | LEDGER | 162.400 | NOAA Weather Radio, a continuous report of conditions |
+| Aleph | LOGBOOK | 162.400 | NOAA Weather Radio, a continuous report of conditions |
 | Flea | LEVER | 27.145 | The 27 MHz band used by radio-controlled cars |
 | About | JARED | 146.520 | The 2-meter amateur calling frequency |
 
