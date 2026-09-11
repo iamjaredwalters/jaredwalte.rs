@@ -82,6 +82,12 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Tests**: existing unit tests; Playwright Firefox script in `/tmp/pwff/ff.mjs` (not committed).
 **Status**: Complete (2026-09-10)
 
+## Stage 13: Slow-scan portrait
+**Goal**: The About portrait reads like a picture received over the air. A black-and-white headshot on black (`src/assets/portrait.webp`, imported so the URL is hashed) is sampled by luminance with a high black point, which empties eye sockets and neck the way hard light would, and laid out on 64 scan lines instead of a stipple. On lock the raster draws in top to bottom over 2.4 s with a hot line at the scan position while the undrawn rows hang as static; on unlock it erases from the bottom, faster. Sampler options `black`, `contrast`, `rows`, `cells` (halftone, unused) and target options `jitter`/`turbulence`/`scan` carry the look; the original colour curve is back. Tried and rejected: a soft colour photo (flat luminance saturates under additive blending), a local-contrast pass (halos), a side-lit photo (loses half the face), a halftone screen (too coarse at this budget).
+**Success Criteria**: both eyes, nose, mustache and curls resolve at 262k particles; the scan takes the configured time (probe: `reveal` 0→1 over 2.4 s); reduced motion shows the finished picture immediately.
+**Tests**: `portrait.test.ts` (black point, local contrast, rows, cells), `reveal.test.ts` (scan progress); Playwright Firefox captures at +300/900/1500/2100 ms.
+**Status**: Complete (2026-09-11)
+
 ## Follow-ups
 - Real device screenshots or short clips inside dossiers (Seevie stick, Ting) once assets are picked.
 - Light theme if ever wanted (tokens are oklch; the field is dark-first).

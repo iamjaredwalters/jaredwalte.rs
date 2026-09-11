@@ -14,6 +14,7 @@ import {
   screenUV,
   sin,
   smoothstep,
+  step,
   time,
   uint,
   uniform,
@@ -22,6 +23,7 @@ import {
   vec4,
 } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
+import { scanProgress } from './reveal';
 import type { TargetData } from './targets';
 
 export interface AudioLevels {
@@ -57,6 +59,7 @@ export interface TargetOptions {
   bright?: number;
   jitter?: number;
   turbulence?: number;
+  scan?: number;
   react?: Partial<Reaction>;
 }
 
@@ -76,12 +79,13 @@ interface RegisteredTarget {
   bright: number;
   jitter: number;
   turbulence: number;
+  scan: number;
   react: Reaction;
 }
 
 const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1, z: 0 };
 const DEFAULT_POINT_WEIGHT = 0.5;
-const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, jitter: 0.014, turbulence: 0.0022, react: NO_REACTION };
+const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, jitter: 0.014, turbulence: 0.0022, scan: 0, react: NO_REACTION };
 
 export async function probeWebGPU(): Promise<boolean> {
   const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } }).gpu;
@@ -105,6 +109,7 @@ export class Field {
   private readonly computeUpdate: THREE.ComputeNode;
   private readonly pipeline: THREE.RenderPipeline;
   private readonly registered = new Map<number, RegisteredTarget>();
+  private readonly extents = new Map<number, { min: number; max: number }>();
 
   private readonly uPrev = uniform(0, 'uint');
   private readonly uNext = uniform(0, 'uint');
@@ -115,6 +120,10 @@ export class Field {
   private readonly uWavePrev = uniform(0);
   private readonly uWaveNext = uniform(0);
   private readonly uJitter = uniform(0.014);
+  private readonly uRevealActive = uniform(0);
+  private readonly uRevealSide = uniform(0);
+  private readonly uRevealLine = uniform(0);
+  private readonly uRevealBeam = uniform(0.05);
   private readonly uStiffness = uniform(0.045);
   private readonly uDamping = uniform(0.86);
   private readonly uTurbulence = uniform(0.0022);
@@ -144,6 +153,8 @@ export class Field {
   private dialTo = 0;
   private dialT = 0;
   private signal = 1;
+  private reveal = 1;
+  private revealTarget = -1;
   private framing: Framing = { offsetX: 0, offsetY: 0, zoom: 1 };
   private targetDistance = DEFAULT_TARGET.distance;
   private spinAngle = 0;
@@ -209,6 +220,10 @@ export class Field {
     const uWavePrev = this.uWavePrev;
     const uWaveNext = this.uWaveNext;
     const uJitter = this.uJitter;
+    const uRevealActive = this.uRevealActive;
+    const uRevealSide = this.uRevealSide;
+    const uRevealLine = this.uRevealLine;
+    const uRevealBeam = this.uRevealBeam;
     const uStiffness = this.uStiffness;
     const uDamping = this.uDamping;
     const uTurbulence = this.uTurbulence;
@@ -235,6 +250,10 @@ export class Field {
       const cA = targetCol.element(offsetPrev).xyz;
       const cB = targetCol.element(offsetNext).xyz;
       const ease = smoothstep(0, 1, uBlend);
+      const revealMix = uRevealActive.mul(mix(float(1).sub(ease), ease, uRevealSide));
+      const revealY = mix(pA.y, pB.y, uRevealSide);
+      const arrived = mix(float(1), step(uRevealLine, revealY), revealMix);
+      const beam = float(1).sub(smoothstep(float(0), uRevealBeam, revealY.sub(uRevealLine).abs())).mul(revealMix);
       const jitter = vec3(hash(i.add(uint(11))), hash(i.add(uint(23))), hash(i.add(uint(37)))).sub(0.5).mul(uJitter);
       const goalRaw = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
       const hot = mix(targetCol.element(offsetPrev).w, targetCol.element(offsetNext).w, ease);
@@ -253,9 +272,9 @@ export class Field {
       const velocity = velocities.element(i);
       const color = colors.element(i);
 
-      velocity.addAssign(goal.sub(position).mul(uStiffness));
+      velocity.addAssign(goal.sub(position).mul(uStiffness.mul(arrived.mul(0.95).add(0.05))));
       const turbulence = mx_noise_vec3(position.mul(uNoiseScale).add(vec3(time.mul(0.12), time.mul(0.05), time.mul(0.08))));
-      velocity.addAssign(turbulence.mul(uTurbulence.add(uEnergy.mul(0.085))));
+      velocity.addAssign(turbulence.mul(uTurbulence.add(uEnergy.mul(0.085)).add(float(1).sub(arrived).mul(0.05))));
       const away = position.sub(uPointer);
       const dist = length(away);
       const push = smoothstep(uPointerRadius, float(0), dist).mul(uPointerForce);
@@ -263,7 +282,7 @@ export class Field {
       velocity.mulAssign(uDamping);
       position.addAssign(velocity);
 
-      const goalColor = mix(cA, cB, ease);
+      const goalColor = mix(cA, cB, ease).mul(arrived.mul(0.85).add(0.15)).mul(float(1).add(beam.mul(3.5)));
       color.assign(vec4(mix(color.xyz, goalColor, 0.07), hot));
     })().compute(particleCount);
 
@@ -327,6 +346,14 @@ export class Field {
       colors[dst + 2] = data.colors[src + 2];
       colors[dst + 3] = data.weights ? data.weights[i % count] : DEFAULT_POINT_WEIGHT;
     }
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (let i = 0; i < count; i++) {
+      const y = data.positions[i * 3 + 1];
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    this.extents.set(index, { min: minY, max: maxY });
     posAttribute.needsUpdate = true;
     colAttribute.needsUpdate = true;
     if (posAttribute.pbo) posAttribute.pbo.needsUpdate = true;
@@ -447,6 +474,31 @@ export class Field {
     return this.dialTo;
   }
 
+  private updateReveal(from: RegisteredTarget, to: RegisteredTarget, mixT: number, dt: number): void {
+    const side = to.scan > 0 ? 1 : from.scan > 0 ? 0 : -1;
+    const scanning = side >= 0 && !this.config.reducedMotion;
+    if (scanning) {
+      const index = side === 1 ? this.dialTo : this.current;
+      const seconds = side === 1 ? to.scan : from.scan;
+      if (this.revealTarget !== index) {
+        this.revealTarget = index;
+        this.reveal = 0;
+      }
+      const onTo = this.blending ? this.blendProgress() > 0.85 : mixT > 0.98;
+      const onFrom = !this.blending && mixT < 0.02;
+      const settled = side === 1 ? onTo : onFrom;
+      this.reveal = scanProgress(this.reveal, settled && this.signal > 0.95, dt, seconds);
+      const extent = this.extents.get(index) ?? { min: -1, max: 1 };
+      const margin = this.uRevealBeam.value * 3;
+      this.uRevealSide.value = side;
+      this.uRevealLine.value = extent.max + margin - this.reveal * (extent.max - extent.min + 2 * margin);
+    } else {
+      this.revealTarget = -1;
+      this.reveal = 1;
+    }
+    this.uRevealActive.value = scanning && this.reveal < 1 ? 1 : 0;
+  }
+
   private blendProgress(): number {
     return Math.min(1, (performance.now() - this.blendStart) / (this.blendDuration * 1000));
   }
@@ -496,6 +548,7 @@ export class Field {
       bright: m(from.bright, to.bright) * (0.45 + 0.55 * this.signal),
       jitter: m(from.jitter, to.jitter),
       turbulence: m(from.turbulence, to.turbulence),
+      scan: to.scan,
       react: {
         radial: m(from.react.radial, to.react.radial),
         vertical: m(from.react.vertical, to.react.vertical),
@@ -505,6 +558,7 @@ export class Field {
     };
     const motion = this.config.reducedMotion ? 0 : 1;
     this.spinAngle += dt * motion;
+    this.updateReveal(from, to, mixT, dt);
     const spin = target.spin > 0.5 ? this.spinAngle * target.spin : Math.sin(this.spinAngle * 0.5) * target.spin;
     const px = this.pointerActive ? this.pointerNdc.x : 0;
     const py = this.pointerActive ? this.pointerNdc.y : 0;

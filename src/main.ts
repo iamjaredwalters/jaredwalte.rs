@@ -3,6 +3,7 @@ import { ALSO_ON_AIR, STATIONS, applyTint, type Station, type TintName } from '@
 import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
+import portraitUrl from '@/assets/portrait.webp';
 import { morseMarks, signoffTarget } from '@/field/signoff';
 import { PROCEDURAL } from '@/field/targets';
 import { dialState, lerp, nextLock } from '@/ui/dial';
@@ -329,8 +330,8 @@ async function boot(): Promise<void> {
     }
   });
   loads.push(
-    portraitFromImage('/jared-jetski.webp', TARGET_POINTS, { floor: 0.05, gamma: 2.0 }).then((data) => {
-      field.setTarget(SLOT.portrait, data, { scale: 0.8, spin: 0.14, tilt: 0.12, pitch: 0.02, distance: 2.9, bright: 0.55 });
+    portraitFromImage(portraitUrl, TARGET_POINTS, { black: 0.3, gamma: 1.6, rows: 64 }).then((data) => {
+      field.setTarget(SLOT.portrait, data, { scale: 0.75, spin: 0.14, tilt: 0.12, pitch: 0.02, distance: 2.9, bright: 0.3, jitter: 0.004, turbulence: 0.0006, scan: 2.4 });
       updateDial();
     }),
   );
