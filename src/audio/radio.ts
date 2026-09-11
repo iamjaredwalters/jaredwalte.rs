@@ -1,10 +1,12 @@
 import { chirpPlan, rogerPlan, squelchPlan, type CuePlan } from './cues';
 import { MANIFEST, clipsForZone, preloadOrder } from './manifest';
 import { Mixer, type Levels } from './mixer';
+import type { CrossfadeTiming } from './schedule';
 
 type CueName = 'squelch' | 'chirp' | 'roger';
 
 const SILENT: Levels = { low: 0, mid: 0, high: 0, rms: 0 };
+const WARM_UP: CrossfadeTiming = { outMs: 400, gapMs: 250, inMs: 2200 };
 const STATIC_LOCKED = 0.03;
 const STATIC_OPEN = 0.5;
 const TEXTURE_LEVEL = 0.45;
@@ -28,7 +30,6 @@ export class Radio {
       void this.preload();
     }
     await this.mixer.resume();
-    void this.cue('chirp');
     await this.tune(this.zone, true);
   }
 
@@ -37,9 +38,10 @@ export class Radio {
     if (!this.enabled || !this.mixer) return;
     const clips = clipsForZone(zoneId);
     if (!initial) void this.cue('squelch');
-    void this.mixer.playLoop('static', MANIFEST.static, clips.bed ? STATIC_LOCKED : STATIC_OPEN);
-    void this.mixer.playLoop('bed', clips.bed, clips.bedLevel);
-    void this.mixer.playLoop('texture', clips.texture, TEXTURE_LEVEL);
+    const timing = initial ? WARM_UP : undefined;
+    void this.mixer.playLoop('static', MANIFEST.static, clips.bed ? STATIC_LOCKED : STATIC_OPEN, timing);
+    void this.mixer.playLoop('bed', clips.bed, clips.bedLevel, timing);
+    void this.mixer.playLoop('texture', clips.texture, TEXTURE_LEVEL, timing);
     window.clearTimeout(this.lockTimer);
     if (!initial && MANIFEST.stations[zoneId]) {
       this.lockTimer = window.setTimeout(() => {

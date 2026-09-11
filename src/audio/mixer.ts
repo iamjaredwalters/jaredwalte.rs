@@ -150,9 +150,19 @@ export class Mixer {
 
   async resume(): Promise<void> {
     await this.ctx.resume();
+    const now = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setValueAtTime(0.0001, now);
+    this.master.gain.exponentialRampToValueAtTime(0.9, now + 0.8);
   }
 
   async suspend(): Promise<void> {
+    if (this.ctx.state !== 'running') return;
+    const now = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setValueAtTime(Math.max(0.0001, this.master.gain.value), now);
+    this.master.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    await new Promise((resolve) => window.setTimeout(resolve, 420));
     await this.ctx.suspend();
   }
 
