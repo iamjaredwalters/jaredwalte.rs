@@ -106,6 +106,7 @@
 }
 
 .contact__title {
+  max-width: 9ch;
   font-size: clamp(2.6rem, 7vw, 6.5rem);
   font-size: --fluid(2.6rem, 6.5rem);
   font-weight: 900;

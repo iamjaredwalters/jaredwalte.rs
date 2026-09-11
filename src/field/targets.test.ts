@@ -27,6 +27,24 @@ describe('procedural targets', () => {
     }
   });
 
+  it.each(['globe', 'dome', 'calendar', 'phone'] as ProceduralKind[])('%s marks hot nodes with weights in [0, 1]', (kind) => {
+    const data = PROCEDURAL[kind](2048);
+    expect(data.weights).toBeDefined();
+    expect(data.weights!.length).toBe(2048);
+    let hot = 0;
+    for (const value of data.weights!) {
+      expect(value).toBeGreaterThanOrEqual(0);
+      expect(value).toBeLessThanOrEqual(1);
+      if (value === 1) hot++;
+    }
+    expect(hot).toBeGreaterThan(50);
+    expect(hot).toBeLessThan(2048 * 0.6);
+  });
+
+  it('leaves unweighted targets without a weights array', () => {
+    expect(PROCEDURAL.carrier(256).weights).toBeUndefined();
+  });
+
   it('is deterministic for a seed', () => {
     const a = PROCEDURAL.dome(512, 9);
     const b = PROCEDURAL.dome(512, 9);

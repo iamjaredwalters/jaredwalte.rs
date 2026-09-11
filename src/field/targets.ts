@@ -1,6 +1,7 @@
 export interface TargetData {
   positions: Float32Array;
   colors: Float32Array;
+  weights?: Float32Array;
 }
 
 export type Rng = () => number;
@@ -16,16 +17,26 @@ export function mulberry32(seed: number): Rng {
   };
 }
 
+export const DEFAULT_WEIGHT = 0.5;
+
 class Writer {
   readonly positions: Float32Array;
   readonly colors: Float32Array;
+  readonly weights: Float32Array;
+  weight = DEFAULT_WEIGHT;
   private cursor = 0;
+  private weighted = false;
   constructor(readonly count: number) {
     this.positions = new Float32Array(count * 3);
     this.colors = new Float32Array(count * 3);
+    this.weights = new Float32Array(count);
   }
   get remaining(): number {
     return this.count - this.cursor;
+  }
+  hot(weight: number): void {
+    this.weight = weight;
+    this.weighted = true;
   }
   put(x: number, y: number, z: number, r: number, g: number, b: number): void {
     if (this.cursor >= this.count) return;
@@ -36,13 +47,14 @@ class Writer {
     this.colors[i] = r;
     this.colors[i + 1] = g;
     this.colors[i + 2] = b;
+    this.weights[this.cursor] = this.weight;
     this.cursor++;
   }
   fillRest(fn: (w: Writer) => void): void {
     while (this.remaining > 0) fn(this);
   }
   data(): TargetData {
-    return { positions: this.positions, colors: this.colors };
+    return this.weighted ? { positions: this.positions, colors: this.colors, weights: this.weights } : { positions: this.positions, colors: this.colors };
   }
 }
 
@@ -151,6 +163,7 @@ export function globe(count: number, seed = 3): TargetData {
     p[0] * Math.sin(tilt) + p[1] * Math.cos(tilt),
     p[2],
   ];
+  w.hot(0);
   const lineCount = Math.floor(count * 0.52);
   for (let i = 0; i < lineCount; i++) {
     const isLat = rng() < 0.5;
@@ -189,9 +202,12 @@ export function globe(count: number, seed = 3): TargetData {
     const dir = rot([Math.cos(lat) * Math.cos(lon), Math.sin(lat), Math.cos(lat) * Math.sin(lon)]);
     const base: Vec3 = [dir[0] * R, dir[1] * R, dir[2] * R];
     const tip: Vec3 = [dir[0] * (R + 0.16), dir[1] * (R + 0.16), dir[2] * (R + 0.16)];
+    w.hot(0.35);
     segment(w, base, tip, Math.floor(perPin * 0.4), pinStem, rng, 0.002);
+    w.hot(1);
     clump(w, tip, perPin - Math.floor(perPin * 0.4), 0.02, pinHead, rng);
   }
+  w.hot(0);
   w.fillRest((wr) => {
     const p = onSphere(rng, R);
     wr.put(p[0], p[1], p[2], faint[0], faint[1], faint[2]);
@@ -207,6 +223,7 @@ export function dome(count: number, seed = 4): TargetData {
   const lineColor = hsl(285, 0.6, 0.6);
   const starTints: Vec3[] = [hsl(45, 0.35, 0.9), hsl(352, 0.85, 0.7), hsl(285, 0.75, 0.72), hsl(168, 0.75, 0.62)];
   const R = 1.0;
+  w.hot(0);
   const horizonCount = Math.floor(count * 0.08);
   for (let i = 0; i < horizonCount; i++) {
     const t = rng() * Math.PI * 2;
@@ -243,7 +260,9 @@ export function dome(count: number, seed = 4): TargetData {
     }
   }
   const perEdge = Math.max(1, Math.floor(lineBudget / edges.length));
+  w.hot(0.12);
   for (const [a, b] of edges) segment(w, stars[a].p, stars[b].p, perEdge, lineColor, rng, 0.002);
+  w.hot(1);
   const starBudget = w.remaining;
   const magSum = stars.reduce((s, st) => s + st.mag + 0.08, 0);
   for (const st of stars) {
@@ -251,6 +270,7 @@ export function dome(count: number, seed = 4): TargetData {
     const tint = starTints[Math.floor(rng() * starTints.length)];
     clump(w, st.p, n, 0.006 + st.mag * 0.03, tint, rng);
   }
+  w.hot(0);
   w.fillRest((wr) => {
     const p = onSphere(rng, R);
     wr.put(p[0], Math.abs(p[1]) - 0.35, p[2], sky[0], sky[1], sky[2]);
@@ -279,6 +299,7 @@ export function calendar(count: number, seed = 5): TargetData {
   const right = page[0] + pageW / 2;
   const cellW = pageW / cols;
   const cellH = (gridTop - gridBottom) / rows;
+  w.hot(0);
   const outline = Math.floor(count * 0.1);
   const perSide = Math.floor(outline / 4);
   segment(w, [left, gridBottom, page[2]], [right, gridBottom, page[2]], perSide, teal, rng);
@@ -302,6 +323,7 @@ export function calendar(count: number, seed = 5): TargetData {
   const tileBudget = Math.floor(count * 0.16);
   const tileWeight = events.reduce((sum, e) => sum + e[2], 0);
   let highlight: Vec3 = [0, 0, 0];
+  w.hot(1);
   for (const [c, r, weight] of events) {
     const n = Math.floor((tileBudget * weight) / tileWeight);
     const x0 = left + c * cellW + cellW * 0.12;
@@ -311,6 +333,7 @@ export function calendar(count: number, seed = 5): TargetData {
     }
     if (weight === 1) highlight = [x0 + cellW * 0.38, y0 + cellH * 0.32, page[2] + 0.02];
   }
+  w.hot(0);
   const flyerCenter: Vec3 = [-0.78, -0.02, 0.28];
   const flyerW = 0.55;
   const flyerH = 0.78;
@@ -334,7 +357,9 @@ export function calendar(count: number, seed = 5): TargetData {
     segment(w, onFlyer(0.15, v), onFlyer(0.15 + len, v), perText, i === 0 ? tile : creamDim, rng, 0.004);
   }
   const blob = onFlyer(0.5, 0.86);
+  w.hot(1);
   clump(w, blob, Math.floor(count * 0.04), 0.045, tile, rng);
+  w.hot(0.3);
   const arcCount = Math.floor(count * 0.1);
   const from: Vec3 = onFlyer(0.95, 0.55);
   for (let i = 0; i < arcCount; i++) {
@@ -344,8 +369,66 @@ export function calendar(count: number, seed = 5): TargetData {
     const z = from[2] + (highlight[2] - from[2]) * t;
     w.put(x + gauss(rng) * 0.003, y + gauss(rng) * 0.003, z + gauss(rng) * 0.003, arc[0], arc[1], arc[2]);
   }
+  w.hot(0);
   w.fillRest((wr) => {
     wr.put(left + rng() * pageW, gridBottom + rng() * (gridTop - gridBottom), page[2] - 0.01, tealDim[0] * 0.5, tealDim[1] * 0.5, tealDim[2] * 0.5);
+  });
+  return w.data();
+}
+
+export function phone(count: number, seed = 8): TargetData {
+  const rng = mulberry32(seed);
+  const w = new Writer(count);
+  const shell = hsl(45, 0.3, 0.86);
+  const shellDim = hsl(45, 0.2, 0.5);
+  const ring = hsl(168, 0.75, 0.55);
+  const hole = hsl(168, 0.9, 0.62);
+  const cord = hsl(352, 0.9, 0.62);
+  const z = 0;
+  const arc = (cx: number, cy: number, rx: number, ry: number, a0: number, a1: number, n: number, color: Vec3, spread = 0.003) => {
+    for (let i = 0; i < n; i++) {
+      const a = a0 + (a1 - a0) * rng();
+      w.put(cx + Math.cos(a) * rx + gauss(rng) * spread, cy + Math.sin(a) * ry + gauss(rng) * spread, z + gauss(rng) * spread, color[0], color[1], color[2]);
+    }
+  };
+  w.hot(0);
+  const bodyBudget = Math.floor(count * 0.3);
+  const bottomY = -0.62;
+  const topY = 0.12;
+  const bottomHalf = 0.85;
+  const topHalf = 0.62;
+  const side = Math.floor(bodyBudget * 0.22);
+  segment(w, [-bottomHalf, bottomY, z], [bottomHalf, bottomY, z], side, shell, rng);
+  segment(w, [bottomHalf, bottomY, z], [topHalf, topY, z], side, shell, rng);
+  segment(w, [topHalf, topY, z], [-topHalf, topY, z], side, shell, rng);
+  segment(w, [-topHalf, topY, z], [-bottomHalf, bottomY, z], side, shell, rng);
+  segment(w, [-0.78, -0.42, z], [0.78, -0.42, z], Math.floor(bodyBudget * 0.06), shellDim, rng, 0.002);
+  segment(w, [-0.5, topY, z], [-0.5, 0.36, z], Math.floor(bodyBudget * 0.03), shell, rng);
+  segment(w, [0.5, topY, z], [0.5, 0.36, z], Math.floor(bodyBudget * 0.03), shell, rng);
+  const dialBudget = Math.floor(count * 0.26);
+  const dialC: Vec3 = [0, -0.22, z];
+  arc(dialC[0], dialC[1], 0.34, 0.34, 0, Math.PI * 2, Math.floor(dialBudget * 0.4), ring);
+  arc(dialC[0], dialC[1], 0.17, 0.17, 0, Math.PI * 2, Math.floor(dialBudget * 0.22), ring);
+  segment(w, [dialC[0] + 0.24, dialC[1] - 0.25, z], [dialC[0] + 0.36, dialC[1] - 0.33, z], Math.floor(dialBudget * 0.05), shell, rng);
+  w.hot(1);
+  const holes = 10;
+  const perHole = Math.floor((dialBudget * 0.33) / holes);
+  for (let i = 0; i < holes; i++) {
+    const a = -Math.PI * 0.32 - (i / (holes - 1)) * Math.PI * 1.5;
+    clump(w, [dialC[0] + Math.cos(a) * 0.26, dialC[1] + Math.sin(a) * 0.26, z + 0.01], perHole, 0.028, hole, rng);
+  }
+  w.hot(0);
+  const handsetBudget = Math.floor(count * 0.3);
+  arc(-0.74, 0.5, 0.17, 0.13, 0, Math.PI * 2, Math.floor(handsetBudget * 0.2), shell);
+  arc(0.74, 0.5, 0.17, 0.13, 0, Math.PI * 2, Math.floor(handsetBudget * 0.2), shell);
+  arc(0, 0.2, 0.68, 0.62, Math.PI * 0.2, Math.PI * 0.8, Math.floor(handsetBudget * 0.3), shell);
+  arc(0, 0.2, 0.68, 0.46, Math.PI * 0.24, Math.PI * 0.76, Math.floor(handsetBudget * 0.3), shellDim);
+  w.hot(0.2);
+  w.fillRest((wr) => {
+    const t = rng();
+    const x = -0.92 + Math.sin(t * Math.PI * 14) * 0.05;
+    const y = 0.42 - t * 1.0;
+    wr.put(x + gauss(rng) * 0.003, y + gauss(rng) * 0.003, z - 0.05 + gauss(rng) * 0.003, cord[0], cord[1], cord[2]);
   });
   return w.data();
 }
@@ -460,6 +543,7 @@ export const PROCEDURAL = {
   calendar,
   ledger,
   terrain,
+  phone,
 } as const;
 
 export type ProceduralKind = keyof typeof PROCEDURAL;

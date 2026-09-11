@@ -44,6 +44,7 @@ export interface Reaction {
   radial: number;
   vertical: number;
   floor: number;
+  z: number;
 }
 
 export interface TargetOptions {
@@ -74,13 +75,9 @@ interface RegisteredTarget {
   react: Reaction;
 }
 
-const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1 };
+const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1, z: 0 };
+const DEFAULT_POINT_WEIGHT = 0.5;
 const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, react: NO_REACTION };
-
-function smoothstepJs(edge0: number, edge1: number, x: number): number {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
 
 export class Field {
   readonly backend: 'webgpu' | 'webgl';
@@ -123,7 +120,7 @@ export class Field {
   private readonly uReactRadial = uniform(0);
   private readonly uReactVertical = uniform(0);
   private readonly uReactFloor = uniform(-1);
-  private readonly uCollapse = uniform(0);
+  private readonly uReactZ = uniform(0);
   private audioSource: (() => AudioLevels) | null = null;
   private audioBaseLow = 0;
   private audioBaseMid = 0;
@@ -135,7 +132,6 @@ export class Field {
   private dialTo = 0;
   private dialT = 0;
   private signal = 1;
-  private collapse = 0;
   private framing: Framing = { offsetX: 0, offsetY: 0, zoom: 1 };
   private targetDistance = DEFAULT_TARGET.distance;
   private spinAngle = 0;
@@ -175,6 +171,7 @@ export class Field {
     const positions = instancedArray(particleCount, 'vec3');
     const velocities = instancedArray(particleCount, 'vec3');
     const colors = instancedArray(particleCount, 'vec3');
+    const hotness = instancedArray(particleCount, 'float');
 
     const M = uint(targetPoints);
 
@@ -213,7 +210,7 @@ export class Field {
     const uReactRadial = this.uReactRadial;
     const uReactVertical = this.uReactVertical;
     const uReactFloor = this.uReactFloor;
-    const uCollapse = this.uCollapse;
+    const uReactZ = this.uReactZ;
     const targetPos = this.targetPos;
     const targetCol = this.targetCol;
 
@@ -228,19 +225,19 @@ export class Field {
       const cB = targetCol.element(offsetNext).xyz;
       const ease = smoothstep(0, 1, uBlend);
       const jitter = vec3(hash(i.add(uint(11))), hash(i.add(uint(23))), hash(i.add(uint(37)))).sub(0.5).mul(uJitter);
-      const spread = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
-      const squeezeY = float(1).sub(smoothstep(0.0, 0.55, uCollapse));
-      const squeezeX = float(1).sub(smoothstep(0.5, 1.0, uCollapse));
-      const goalRaw = vec3(spread.x.mul(squeezeX), spread.y.mul(squeezeY), spread.z.mul(squeezeX));
+      const goalRaw = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
+      const hot = mix(targetCol.element(offsetPrev).w, targetCol.element(offsetNext).w, ease);
+      hotness.element(i).assign(hot);
       const waveAmp = mix(uWavePrev, uWaveNext, ease);
       const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp.mul(float(1).add(uAudioLow.mul(1.4)))).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
       const reactNoise = mx_noise_float(goalRaw.mul(2.4).add(vec3(time.mul(0.35), time.mul(0.2), 0))).mul(0.5).add(0.5);
-      const audioDrive = uAudioLow.mul(0.7).add(uAudioHigh.mul(0.9));
+      const audioDrive = uAudioLow.mul(0.7).add(uAudioHigh.mul(0.9)).mul(hot.mul(2));
       const radialDir = normalize(goalRaw.add(vec3(0.0001, 0.0002, 0.0003)));
       const radial = radialDir.mul(audioDrive.mul(uReactRadial).mul(reactNoise.mul(0.7).add(0.3)));
       const height = goalRaw.y.sub(uReactFloor).max(0);
       const vertical = vec3(0, height.mul(audioDrive).mul(uReactVertical).mul(reactNoise.mul(0.8).add(0.2)), 0);
-      const goal = goalRaw.add(vec3(0, wave, 0)).add(radial).add(vertical).add(jitter);
+      const forward = vec3(0, 0, audioDrive.mul(uReactZ).mul(reactNoise.mul(0.5).add(0.5)));
+      const goal = goalRaw.add(vec3(0, wave, 0)).add(radial).add(vertical).add(forward).add(jitter);
 
       const position = positions.element(i);
       const velocity = velocities.element(i);
@@ -262,10 +259,11 @@ export class Field {
 
     const material = new THREE.SpriteNodeMaterial();
     material.positionNode = positions.toAttribute();
-    material.colorNode = vec4(colors.toAttribute().xyz.mul(this.uBrightness.mul(float(1).add(this.uAudioHigh.mul(0.7)))), 1);
+    const glowAttr = hotness.toAttribute();
+    material.colorNode = vec4(colors.toAttribute().xyz.mul(this.uBrightness.mul(float(1).add(this.uAudioHigh.mul(glowAttr).mul(1.6)))), 1);
     const d = length(uv().sub(0.5));
     material.opacityNode = float(1).sub(smoothstep(0.1, 0.5, d)).mul(this.uAlpha);
-    material.scaleNode = this.uSize.mul(hash(instanceIndex.add(uint(5))).mul(0.9).add(0.55));
+    material.scaleNode = this.uSize.mul(hash(instanceIndex.add(uint(5))).mul(0.9).add(0.55)).mul(float(1).add(this.uAudioHigh.mul(glowAttr).mul(0.7)));
     material.transparent = true;
     material.depthWrite = false;
     material.depthTest = false;
@@ -312,6 +310,7 @@ export class Field {
       this.targetColArray[dst] = data.colors[src];
       this.targetColArray[dst + 1] = data.colors[src + 1];
       this.targetColArray[dst + 2] = data.colors[src + 2];
+      this.targetColArray[dst + 3] = data.weights ? data.weights[i % count] : DEFAULT_POINT_WEIGHT;
     }
     this.targetPos.value.needsUpdate = true;
     this.targetCol.value.needsUpdate = true;
@@ -362,10 +361,6 @@ export class Field {
     this.dialTo = b;
     this.dialT = t;
     this.signal = signal;
-  }
-
-  setCollapse(value: number): void {
-    this.collapse = Math.max(0, Math.min(1, value));
   }
 
   get currentTarget(): number {
@@ -471,7 +466,6 @@ export class Field {
     this.uEnergy.value *= Math.pow(0.02, dt);
     if (this.uEnergy.value < 0.002) this.uEnergy.value = 0;
     if (!this.config.reducedMotion) this.uEnergy.value = Math.max(this.uEnergy.value, (1 - this.signal) * 0.8);
-    this.uCollapse.value += (this.collapse - this.uCollapse.value) * Math.min(1, dt * 6);
 
     const from = this.registered.get(this.current) ?? DEFAULT_TARGET;
     const to = this.registered.get(this.dialTo) ?? from;
@@ -484,11 +478,12 @@ export class Field {
       tilt: m(from.tilt, to.tilt),
       pitch: m(from.pitch, to.pitch),
       distance: m(from.distance, to.distance),
-      bright: m(from.bright, to.bright) * (0.45 + 0.55 * this.signal) * (1 + this.uCollapse.value * 1.2) * (1 - smoothstepJs(0.9, 1, this.uCollapse.value) * 0.85),
+      bright: m(from.bright, to.bright) * (0.45 + 0.55 * this.signal),
       react: {
         radial: m(from.react.radial, to.react.radial),
         vertical: m(from.react.vertical, to.react.vertical),
         floor: m(from.react.floor, to.react.floor),
+        z: m(from.react.z, to.react.z),
       },
     };
     const motion = this.config.reducedMotion ? 0 : 1;
@@ -508,6 +503,7 @@ export class Field {
     this.uReactRadial.value += (target.react.radial - this.uReactRadial.value) * k;
     this.uReactVertical.value += (target.react.vertical - this.uReactVertical.value) * k;
     this.uReactFloor.value += (target.react.floor - this.uReactFloor.value) * k;
+    this.uReactZ.value += (target.react.z - this.uReactZ.value) * k;
 
     if (this.pointerActive && motion) {
       const fovY = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;
