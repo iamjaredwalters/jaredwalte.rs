@@ -4,6 +4,7 @@ import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
 import { followTint } from '@/ui/favicon';
+import { initChannels } from '@/ui/channels';
 import portraitUrl from '@/assets/portrait.webp';
 import { morseMarks, signoffTarget } from '@/field/signoff';
 import { PROCEDURAL } from '@/field/targets';
@@ -291,6 +292,7 @@ async function boot(): Promise<void> {
     if (button?.dataset.open) void dossier.open(button.dataset.open);
   });
 
+  initChannels(must<HTMLElement>('#channels'), must<HTMLElement>('#channels-anchor'));
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {
     field.resize();
