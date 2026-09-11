@@ -109,8 +109,8 @@ export class Field {
   private readonly uPointerRadius = uniform(0.42);
   private readonly uPointerForce = uniform(0.05);
   private readonly uSize = uniform(0.0085);
-  private readonly uBrightness = uniform(0.16);
-  private baseBrightness = 0.16;
+  private readonly uBrightness = uniform(0.13);
+  private baseBrightness = 0.13;
   private readonly uAlpha = uniform(0.7);
   private readonly uBloom = uniform(0.4);
   private readonly uAudioLow = uniform(0);
@@ -141,7 +141,7 @@ export class Field {
     this.backend = !config.forceWebGL && 'gpu' in navigator ? 'webgpu' : 'webgl';
     this.renderer = new THREE.WebGPURenderer({ canvas, antialias: false, forceWebGL: this.backend === 'webgl' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.backend === 'webgpu' ? 1.5 : 1));
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMapping = THREE.NeutralToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     if (this.backend === 'webgl') {
       this.baseBrightness = 0.3;

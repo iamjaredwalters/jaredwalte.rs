@@ -230,8 +230,8 @@ async function boot(): Promise<void> {
         loadCloud(`/clouds/${station.artifact}.bin`).then((cloud) => {
           const options: TargetOptions =
             station.artifact === 'ting'
-              ? { scale: 0.7, spin: 0.35, tilt: 0.12, pitch: 0.05, distance: 3.2, react: { radial: 0.05 } }
-              : { scale: 0.7, spin: 0.4, tilt: 0.12, pitch: 0.05, distance: 3.2, react: { radial: 0.05 } };
+              ? { scale: 0.7, spin: 0.35, tilt: 0.12, pitch: 0.05, distance: 3.2, bright: 0.75, react: { radial: 0.05 } }
+              : { scale: 0.7, spin: 0.4, tilt: 0.12, pitch: 0.05, distance: 3.2, bright: 0.75, react: { radial: 0.05 } };
           field.setTarget(STATION_SLOT(index), { positions: cloud.positions, colors: cloud.colors }, options);
           if (active === station.id) tune(station.id, true);
         }),

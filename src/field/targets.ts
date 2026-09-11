@@ -107,9 +107,9 @@ function noise2(x: number, z: number): number {
 export function carrier(count: number, seed = 1): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const amber = hsl(168, 0.42, 0.66);
-  const cream = hsl(45, 0.3, 0.94);
-  const dim = hsl(168, 0.3, 0.3);
+  const amber = hsl(168, 0.8, 0.52);
+  const cream = hsl(45, 0.3, 0.9);
+  const dim = hsl(168, 0.55, 0.22);
   w.fillRest((wr) => {
     const x = (rng() * 2 - 1) * 1.7;
     const z = (rng() * 2 - 1) * 0.55;
@@ -129,7 +129,7 @@ export function carrier(count: number, seed = 1): TargetData {
 export function shell(count: number, seed = 2): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const c = hsl(45, 0.2, 0.6);
+  const c = hsl(45, 0.2, 0.55);
   w.fillRest((wr) => {
     const p = onSphere(rng, 0.9 + gauss(rng) * 0.01);
     wr.put(p[0], p[1], p[2], c[0], c[1], c[2]);
@@ -141,10 +141,10 @@ export function globe(count: number, seed = 3): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
   const R = 0.82;
-  const line = hsl(282, 0.55, 0.68);
-  const faint = hsl(282, 0.35, 0.22);
-  const pinHead = hsl(352, 0.8, 0.74);
-  const pinStem = hsl(45, 0.3, 0.9);
+  const line = hsl(282, 0.8, 0.6);
+  const faint = hsl(282, 0.5, 0.18);
+  const pinHead = hsl(352, 0.95, 0.6);
+  const pinStem = hsl(45, 0.3, 0.85);
   const tilt = 0.41;
   const rot = (p: Vec3): Vec3 => [
     p[0] * Math.cos(tilt) - p[1] * Math.sin(tilt),
@@ -202,10 +202,10 @@ export function globe(count: number, seed = 3): TargetData {
 export function dome(count: number, seed = 4): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const horizon = hsl(45, 0.3, 0.72);
-  const sky = hsl(285, 0.25, 0.14);
-  const lineColor = hsl(285, 0.4, 0.66);
-  const starTints: Vec3[] = [hsl(45, 0.35, 0.93), hsl(352, 0.6, 0.84), hsl(285, 0.5, 0.84), hsl(168, 0.45, 0.82)];
+  const horizon = hsl(45, 0.3, 0.68);
+  const sky = hsl(285, 0.35, 0.12);
+  const lineColor = hsl(285, 0.6, 0.6);
+  const starTints: Vec3[] = [hsl(45, 0.35, 0.9), hsl(352, 0.85, 0.7), hsl(285, 0.75, 0.72), hsl(168, 0.75, 0.62)];
   const R = 1.0;
   const horizonCount = Math.floor(count * 0.08);
   for (let i = 0; i < horizonCount; i++) {
@@ -261,12 +261,12 @@ export function dome(count: number, seed = 4): TargetData {
 export function calendar(count: number, seed = 5): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const teal = hsl(168, 0.55, 0.6);
-  const tealDim = hsl(168, 0.45, 0.3);
-  const cream = hsl(45, 0.3, 0.92);
-  const creamDim = hsl(45, 0.2, 0.48);
-  const tile = hsl(352, 0.8, 0.72);
-  const arc = hsl(285, 0.6, 0.72);
+  const teal = hsl(168, 0.85, 0.5);
+  const tealDim = hsl(168, 0.6, 0.26);
+  const cream = hsl(45, 0.3, 0.88);
+  const creamDim = hsl(45, 0.2, 0.42);
+  const tile = hsl(352, 0.95, 0.6);
+  const arc = hsl(285, 0.85, 0.66);
   const page: Vec3 = [0.2, 0.05, -0.05];
   const pageW = 1.35;
   const pageH = 1.1;
@@ -369,7 +369,7 @@ export function ledger(count: number, seed = 6): TargetData {
   }
   const total = heights.reduce((a, b) => a + b, 0);
   const gridCount = Math.floor(count * 0.08);
-  const grid = hsl(352, 0.3, 0.24);
+  const grid = hsl(352, 0.45, 0.2);
   for (let i = 0; i < gridCount; i++) {
     const onX = rng() < 0.5;
     const x = onX ? (Math.floor(rng() * (cols + 1)) - cols / 2) * cellX : (rng() - 0.5) * 2.2;
@@ -385,7 +385,7 @@ export function ledger(count: number, seed = 6): TargetData {
       const z0 = (d - rows / 2) * cellZ + cellZ * 0.12;
       const sx = cellX * 0.76;
       const sz = cellZ * 0.76;
-      const c = hsl(352, 0.75, 0.34 + height * 0.56);
+      const c = hsl(352, 0.92, 0.3 + height * 0.42);
       for (let i = 0; i < n; i++) {
         const face = rng();
         let x: number;
@@ -419,9 +419,9 @@ export function terrain(count: number, seed = 7): TargetData {
   const size = 1.35;
   const heightAt = (x: number, z: number) => noise2(x * 1.6, z * 1.6) * 0.32 + 0.1 * Math.max(0, x);
   const surfaceCount = Math.floor(count * 0.78);
-  const snow = hsl(285, 0.3, 0.94);
-  const mid = hsl(285, 0.5, 0.68);
-  const low = hsl(275, 0.45, 0.3);
+  const snow = hsl(285, 0.45, 0.9);
+  const mid = hsl(285, 0.8, 0.6);
+  const low = hsl(275, 0.65, 0.24);
   for (let i = 0; i < surfaceCount; i++) {
     const x = (rng() * 2 - 1) * size;
     const z = (rng() * 2 - 1) * size * 0.7;
@@ -434,7 +434,7 @@ export function terrain(count: number, seed = 7): TargetData {
   }
   const start: Vec3 = [-0.75, heightAt(-0.75, 0.1) - 0.25 + 0.06, 0.1];
   const end: Vec3 = [0.55, heightAt(0.55, 0.1) - 0.25 + 0.06, 0.1];
-  const arcColor = hsl(352, 0.8, 0.72);
+  const arcColor = hsl(352, 0.95, 0.62);
   const arcCount = Math.floor(count * 0.08);
   for (let i = 0; i < arcCount; i++) {
     const t = rng();
@@ -443,7 +443,7 @@ export function terrain(count: number, seed = 7): TargetData {
     const y = start[1] + (end[1] - start[1]) * t + 4 * 0.42 * t * (1 - t);
     w.put(x + gauss(rng) * 0.003, y + gauss(rng) * 0.003, z + gauss(rng) * 0.003, arcColor[0], arcColor[1], arcColor[2]);
   }
-  const robot = hsl(168, 0.6, 0.6);
+  const robot = hsl(168, 0.85, 0.5);
   const bodyCount = Math.floor(w.remaining * 0.6);
   for (let i = 0; i < bodyCount; i++) {
     w.put(start[0] + (rng() - 0.5) * 0.12, start[1] + (rng() - 0.5) * 0.08 + 0.02, start[2] + (rng() - 0.5) * 0.1, robot[0], robot[1], robot[2]);
