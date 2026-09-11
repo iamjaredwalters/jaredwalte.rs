@@ -263,8 +263,8 @@
 .also {
   padding: 6rem var(--gutter);
   display: grid;
-  grid-template-columns: minmax(0, 18rem) 1fr;
-  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 36rem);
+  gap: 3rem;
   border-top: 1px solid var(--line);
 }
 
@@ -292,9 +292,13 @@
   gap: 1rem;
   padding: 1rem 0;
   text-decoration: none;
-  color: var(--paper-2);
+  color: var(--paper);
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 1rem;
+  text-shadow:
+    0 0 2px var(--ink),
+    0 0 6px var(--ink),
+    0 0 14px var(--ink);
 }
 
 .also__list a:hover {
