@@ -231,7 +231,7 @@ export class Field {
       const waveAmp = mix(uWavePrev, uWaveNext, ease);
       const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp.mul(float(1).add(uAudioLow.mul(1.4)))).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
       const reactNoise = mx_noise_float(goalRaw.mul(2.4).add(vec3(time.mul(0.35), time.mul(0.2), 0))).mul(0.5).add(0.5);
-      const audioDrive = uAudioLow.mul(0.7).add(uAudioHigh.mul(0.9)).mul(hot.mul(2));
+      const audioDrive = uAudioLow.mul(0.7).add(uAudioHigh.mul(0.9)).mul(hot.mul(1.2));
       const radialDir = normalize(goalRaw.add(vec3(0.0001, 0.0002, 0.0003)));
       const radial = radialDir.mul(audioDrive.mul(uReactRadial).mul(reactNoise.mul(0.7).add(0.3)));
       const height = goalRaw.y.sub(uReactFloor).max(0);

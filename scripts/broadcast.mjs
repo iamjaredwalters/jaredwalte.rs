@@ -48,7 +48,7 @@ const JOBS = [
     file: 'vela-bed.mp3',
     kind: 'music',
     ms: 40000,
-    prompt: `Night-sky ambient: slow wordless choral pads, celesta, a deep sub drone, sparse twinkling high notes, ${MOTIF} on celesta. Weightless, reverent, very slow. ${NO_VOCALS} No choir words, only sustained vowel-less pads.`,
+    prompt: `Night-sky ambient with presence: full, warm sustained synth and string pads that never drop out, a steady deep drone underneath, celesta sparkles on top, ${MOTIF} on celesta. Consistent dynamics from start to end, lush and enveloping, slow. ${NO_VOCALS}`,
   },
   {
     file: 'add2cal-bed.mp3',

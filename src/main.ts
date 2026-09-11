@@ -97,7 +97,7 @@ async function boot(): Promise<void> {
       station: null,
       tint: 'verdigris',
       readout: SIGN_OFF,
-      framing: () => (wide.matches ? { offsetX: 1.05, offsetY: 0.1, zoom: 1 } : { offsetX: 0, offsetY: 0.6, zoom: 1.35 }),
+      framing: () => (wide.matches ? { offsetX: 1.0, offsetY: 0.2, zoom: 1 } : { offsetX: 0, offsetY: 0.6, zoom: 1.35 }),
       top: 0,
     },
   ];
@@ -145,12 +145,12 @@ async function boot(): Promise<void> {
 
   field.setTarget(SLOT.carrier, PROCEDURAL.carrier(TARGET_POINTS), { scale: 1, wave: 0.16, spin: 0, tilt: 0.25, distance: 3.2 });
   field.setTarget(SLOT.shell, PROCEDURAL.shell(TARGET_POINTS), { scale: 1, spin: 0.05, distance: 3.4, react: { radial: 0.2 } });
-  field.setTarget(SLOT.phone, PROCEDURAL.phone(TARGET_POINTS), { scale: 0.72, spin: 0.3, tilt: 0.12, pitch: 0.06, distance: 3.1, react: { z: 0.22 } });
+  field.setTarget(SLOT.phone, PROCEDURAL.phone(TARGET_POINTS), { scale: 0.5, spin: 0.3, tilt: 0.12, pitch: 0.06, distance: 3.1, react: { z: 0.06 } });
 
   const proceduralByArtifact: Record<string, [keyof typeof PROCEDURAL, TargetOptions]> = {
-    globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.32 } }],
-    dome: ['dome', { scale: 0.85, spin: 0.7, tilt: 0.12, pitch: 0.18, distance: 3.0, react: { radial: 0.26 } }],
-    calendar: ['calendar', { scale: 0.68, spin: 0.35, tilt: 0.12, pitch: 0.08, distance: 3.2, react: { z: 0.28 } }],
+    globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.11 } }],
+    dome: ['dome', { scale: 0.85, spin: 0.7, tilt: 0.12, pitch: 0.18, distance: 3.0, react: { radial: 0.12 } }],
+    calendar: ['calendar', { scale: 0.68, spin: 0.35, tilt: 0.12, pitch: 0.08, distance: 3.2, react: { z: 0.05 } }],
     ledger: ['ledger', { scale: 0.8, spin: 0.25, tilt: 0.3, pitch: 0.55, distance: 3.1, react: { vertical: 0.6, floor: -0.4 } }],
     terrain: ['terrain', { scale: 0.75, spin: 0.2, tilt: 0.35, pitch: 0.5, distance: 3.1, react: { vertical: 0.45, floor: -0.62 } }],
   };

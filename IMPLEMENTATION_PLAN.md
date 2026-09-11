@@ -65,13 +65,13 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Status**: Complete (2026-09-10)
 
 ## Stage 10: Continuous tuning and sign-off
-**Goal**: scroll position is the dial. `src/ui/dial.ts` maps scrollY to (from, to, t, signal) with a lock plateau around each station; the field blends by t and dissolves into static as signal drops; beds and static follow signal; roger/squelch fire on lock/unlock with hysteresis; the dial strip is draggable and arrow keys step channels. Contact is the sign-off: the field forms an old rotary phone (`phone` target) while audio fades to silence.
-**Success Criteria**: mid-scroll shows a half-formed artifact in static with the readout jittering between frequencies; resting on a station locks cleanly; drag and keys move the page; contact ends on a rotary phone with its dial holes as the only reactive nodes.
+**Goal**: scroll position is the dial. `src/ui/dial.ts` maps scrollY to (from, to, t, signal) with a lock plateau around each station; the field blends by t and dissolves into static as signal drops; beds and static follow signal; roger/squelch fire on lock/unlock with hysteresis; the dial strip is draggable and arrow keys step channels. Contact is the sign-off: the field forms a telephone handset (`phone` target) while audio fades to silence.
+**Success Criteria**: mid-scroll shows a half-formed artifact in static with the readout jittering between frequencies; resting on a station locks cleanly; drag and keys move the page; contact ends on a handset whose speaker holes are the only reactive nodes.
 **Tests**: dial state math and lock hysteresis (vitest).
 **Status**: Complete (2026-09-10)
 
 ## Stage 11: Hot nodes
-**Goal**: per-point reactivity weights (stored in the target color buffer's w channel, written to a per-particle `hotness` array each frame) so only the glowing nodes respond to music: pin heads on the globe, stars on the dome, event tiles and the flyer graphic on the calendar, dial holes on the phone. Hot points get brightness and sprite-size pulses plus the target's displacement (radial, vertical, or a new z push toward the camera); grids, lines and pages stay still. Unweighted targets keep a uniform half-strength response.
+**Goal**: per-point reactivity weights (stored in the target color buffer's w channel, written to a per-particle `hotness` array each frame) so only the glowing nodes respond to music: pin heads on the globe (stems ramp from 0 at the base to 1 at the tip so they stretch with the head), stars on the dome, event tiles and the flyer graphic on the calendar, speaker holes on the handset. Hot points get brightness and sprite-size pulses plus the target's displacement (radial, vertical, or a new z push toward the camera); grids, lines and pages stay still. Unweighted targets keep a uniform half-strength response.
 **Success Criteria**: with audio on, the Thereabouts lattice holds still while the pins bloom.
 **Tests**: weight arrays present and bounded for the four weighted generators; absent for the rest.
 **Status**: Complete (2026-09-10)

@@ -34,9 +34,11 @@ export const MANIFEST: AudioManifest = {
   ),
 };
 
+export const BED_LEVELS: Record<string, number> = { vela: 0.85 };
+
 export function clipsForZone(zoneId: string, manifest: AudioManifest = MANIFEST): ZoneClips {
   const station = manifest.stations[zoneId];
-  if (station) return { bed: station.bed, texture: station.texture, bedLevel: 0.5 };
+  if (station) return { bed: station.bed, texture: station.texture, bedLevel: BED_LEVELS[zoneId] ?? 0.5 };
   if (zoneId === 'carrier') return { bed: manifest.theme, texture: null, bedLevel: 0.55 };
   if (zoneId === 'portrait' || zoneId === 'contact') return { bed: manifest.theme, texture: null, bedLevel: 0.35 };
   return { bed: null, texture: null, bedLevel: 0 };

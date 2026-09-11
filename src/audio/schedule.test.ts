@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bandLevels, equalPowerGain, loopSegments, planCrossfade } from './schedule';
-import { clipsForZone, preloadOrder, MANIFEST } from './manifest';
+import { BED_LEVELS, clipsForZone, preloadOrder, MANIFEST } from './manifest';
 
 describe('planCrossfade', () => {
   it('starts the incoming bed after a gap and before the outgoing one is silent', () => {
@@ -47,7 +47,8 @@ describe('bandLevels', () => {
 
 describe('manifest', () => {
   it('maps stations to their bed and texture', () => {
-    expect(clipsForZone('vela')).toEqual({ bed: MANIFEST.stations.vela.bed, texture: MANIFEST.stations.vela.texture, bedLevel: 0.5 });
+    expect(clipsForZone('flea')).toEqual({ bed: MANIFEST.stations.flea.bed, texture: MANIFEST.stations.flea.texture, bedLevel: 0.5 });
+    expect(clipsForZone('vela').bedLevel).toBe(BED_LEVELS.vela);
   });
 
   it('plays the theme in the hero and about, nothing in the shell', () => {
