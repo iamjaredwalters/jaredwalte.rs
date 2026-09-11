@@ -74,7 +74,7 @@ export class Radio {
 
   private async cue(name: CueName): Promise<void> {
     if (!this.enabled || !this.mixer) return;
-    const played = await this.mixer.playOnce(MANIFEST.cues[name], name === 'squelch' ? 0.8 : 0.7);
+    const played = await this.mixer.playOnce(MANIFEST.cues[name], name === 'squelch' ? 0.55 : 0.4);
     if (!played) this.synth(name === 'squelch' ? squelchPlan() : name === 'chirp' ? chirpPlan() : rogerPlan());
   }
 

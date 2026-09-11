@@ -6,7 +6,7 @@ export interface Clip {
   gain: number;
 }
 
-const TARGET_RMS_DB: Record<Bus | 'cues', number> = { static: -30, texture: -33, bed: -20, cues: -14 };
+const TARGET_RMS_DB: Record<Bus | 'cues', number> = { static: -30, texture: -33, bed: -20, cues: -22 };
 
 export type Bus = 'static' | 'texture' | 'bed';
 
@@ -127,8 +127,14 @@ export class Mixer {
       static: this.makeBus(0.5),
       texture: this.makeBus(0.8),
       bed: this.makeBus(1),
-      cues: this.makeBus(0.9),
+      cues: this.makeBus(0.7),
     };
+    const soften = this.ctx.createBiquadFilter();
+    soften.type = 'lowpass';
+    soften.frequency.value = 2800;
+    soften.Q.value = 0.5;
+    this.buses.cues.disconnect();
+    this.buses.cues.connect(soften).connect(this.master);
   }
 
   private makeBus(level: number): GainNode {
@@ -208,9 +214,11 @@ export class Mixer {
     const source = this.ctx.createBufferSource();
     source.buffer = clip.buffer;
     const gain = this.ctx.createGain();
-    gain.gain.value = level * clip.gain;
+    const now = this.ctx.currentTime;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, level * clip.gain), now + 0.015);
     source.connect(gain).connect(this.buses.cues);
-    source.start();
+    source.start(now);
     source.onended = () => gain.disconnect();
     return true;
   }

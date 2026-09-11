@@ -17,9 +17,9 @@ const JOBS = [
     seconds: 20,
     text: 'Warm analog shortwave radio static bed, steady soft hiss with gentle crackle and faint slow carrier drift, no voices, no music, seamless loop',
   },
-  { file: 'cue-squelch.mp3', kind: 'sfx', seconds: 1.4, text: 'Handheld two-way radio squelch tail: a short burst of white noise static that cuts off with a click, then silence' },
-  { file: 'cue-chirp.mp3', kind: 'sfx', seconds: 0.8, text: 'Push-to-talk key-up chirp, two quick rising electronic beeps like a Nextel walkie-talkie, clean and bright' },
-  { file: 'cue-roger.mp3', kind: 'sfx', seconds: 0.9, text: 'Roger beep from a two-way radio: single clean 1 kHz tone followed by a tiny static tick' },
+  { file: 'cue-squelch.mp3', kind: 'sfx', seconds: 1.2, text: 'Soft handheld radio squelch tail: a brief, muffled burst of low static that fades out with a gentle click, quiet, no harshness, then silence' },
+  { file: 'cue-chirp.mp3', kind: 'sfx', seconds: 0.8, text: 'Soft, low-pitched key-up chirp: two gentle muffled rising blips from a small radio speaker, rounded and quiet, no bright or harsh tones' },
+  { file: 'cue-roger.mp3', kind: 'sfx', seconds: 0.9, text: 'Soft roger beep from a small two-way radio speaker: one short mellow low tone around 500 Hz with a rounded attack, quiet and muffled, followed by a faint static tick' },
   {
     file: 'theme.mp3',
     kind: 'music',
