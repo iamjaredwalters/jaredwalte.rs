@@ -84,7 +84,8 @@ async function boot(): Promise<void> {
     reducedMotion,
     forceWebGL,
   });
-  (window as unknown as { __field: Field }).__field = field;
+  (window as unknown as { __field: Field; __radio: Radio }).__field = field;
+  (window as unknown as { __field: Field; __radio: Radio }).__radio = radio;
   must<HTMLElement>('#backend').textContent = `${field.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'} · ${particleCount.toLocaleString()} particles`;
 
   field.setTarget(SLOT.carrier, PROCEDURAL.carrier(TARGET_POINTS), { scale: 1, wave: 0.16, spin: 0, tilt: 0.25, distance: 3.2 });
@@ -103,7 +104,6 @@ async function boot(): Promise<void> {
   });
 
   let active = 'carrier';
-  let lockedTimer: number | undefined;
   const carrierStation = { frequency: '000.000', band: 'MHz', callsign: 'CARRIER' };
   const portraitStation = { frequency: '146.520', band: 'MHz', callsign: 'JARED' };
   const shellStation = { frequency: '000.000', band: 'MHz', callsign: 'STANDBY' };
@@ -119,13 +119,7 @@ async function boot(): Promise<void> {
     if (field.hasTarget(zone.slot)) field.tuneTo(zone.slot, immediate);
     const readout = station ?? (zoneId === 'portrait' ? portraitStation : zoneId === 'carrier' || zoneId === 'contact' ? carrierStation : shellStation);
     tuner.show(readout, true);
-    if (changed && !immediate) {
-      radio.squelch();
-      window.clearTimeout(lockedTimer);
-      lockedTimer = window.setTimeout(() => {
-        if (active === zoneId && station) radio.roger();
-      }, 1500);
-    }
+    if (changed || immediate) void radio.tune(zoneId, immediate);
   }
 
   const zoneElements = Array.from(document.querySelectorAll<HTMLElement>('[data-zone]'));
@@ -191,9 +185,11 @@ async function boot(): Promise<void> {
         field.tuneTo(zone.slot);
         field.pulse(0.6);
         tuner.show(station, true);
+        radio.duck(true);
         radio.chirp();
       },
       onClose() {
+        radio.duck(false);
         radio.squelch();
         const zone = zones.get(active);
         if (zone) field.setFraming(zone.framing());
@@ -219,6 +215,7 @@ async function boot(): Promise<void> {
   }
   window.addEventListener('pointerdown', () => field.pulse(0.45));
 
+  field.setAudioSource(() => radio.levels());
   await field.init();
   markTicks();
   tune('carrier', true);

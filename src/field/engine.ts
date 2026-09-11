@@ -22,6 +22,13 @@ import {
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import type { TargetData } from './targets';
 
+export interface AudioLevels {
+  low: number;
+  mid: number;
+  high: number;
+  rms: number;
+}
+
 export interface FieldConfig {
   canvas: HTMLCanvasElement;
   particleCount: number;
@@ -95,6 +102,11 @@ export class Field {
   private baseBrightness = 0.16;
   private readonly uAlpha = uniform(0.7);
   private readonly uBloom = uniform(0.4);
+  private readonly uAudioLow = uniform(0);
+  private readonly uAudioHigh = uniform(0);
+  private audioSource: (() => AudioLevels) | null = null;
+  private audioBaseLow = 0;
+  private audioBaseMid = 0;
 
   private current = 0;
   private blending = false;
@@ -172,6 +184,7 @@ export class Field {
     const uPointer = this.uPointer;
     const uPointerRadius = this.uPointerRadius;
     const uPointerForce = this.uPointerForce;
+    const uAudioLow = this.uAudioLow;
     const targetPos = this.targetPos;
     const targetCol = this.targetCol;
 
@@ -188,7 +201,7 @@ export class Field {
       const jitter = vec3(hash(i.add(uint(11))), hash(i.add(uint(23))), hash(i.add(uint(37)))).sub(0.5).mul(uJitter);
       const goalRaw = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
       const waveAmp = mix(uWavePrev, uWaveNext, ease);
-      const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
+      const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp.mul(float(1).add(uAudioLow.mul(1.4)))).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
       const goal = goalRaw.add(vec3(0, wave, 0)).add(jitter);
 
       const position = positions.element(i);
@@ -197,7 +210,7 @@ export class Field {
 
       velocity.addAssign(goal.sub(position).mul(uStiffness));
       const turbulence = mx_noise_vec3(position.mul(uNoiseScale).add(vec3(time.mul(0.12), time.mul(0.05), time.mul(0.08))));
-      velocity.addAssign(turbulence.mul(uTurbulence.add(uEnergy.mul(0.085))));
+      velocity.addAssign(turbulence.mul(uTurbulence.add(uEnergy.mul(0.085)).add(uAudioLow.mul(0.014))));
       const away = position.sub(uPointer);
       const dist = length(away);
       const push = smoothstep(uPointerRadius, float(0), dist).mul(uPointerForce);
@@ -211,7 +224,7 @@ export class Field {
 
     const material = new THREE.SpriteNodeMaterial();
     material.positionNode = positions.toAttribute();
-    material.colorNode = vec4(colors.toAttribute().xyz.mul(this.uBrightness), 1);
+    material.colorNode = vec4(colors.toAttribute().xyz.mul(this.uBrightness.mul(float(1).add(this.uAudioHigh.mul(0.7)))), 1);
     const d = length(uv().sub(0.5));
     material.opacityNode = float(1).sub(smoothstep(0.1, 0.5, d)).mul(this.uAlpha);
     material.scaleNode = this.uSize.mul(hash(instanceIndex.add(uint(5))).mul(0.9).add(0.55));
@@ -315,6 +328,10 @@ export class Field {
     this.uEnergy.value = Math.max(this.uEnergy.value, strength);
   }
 
+  setAudioSource(source: (() => AudioLevels) | null): void {
+    this.audioSource = source;
+  }
+
   setBrightness(value: number): void {
     this.baseBrightness = value;
   }
@@ -372,6 +389,18 @@ export class Field {
         this.uWavePrev.value = this.uWaveNext.value;
       }
     }
+    const levels = this.audioSource?.();
+    const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+    const lowNorm = levels ? clamp01((levels.low - 0.3) / 0.65) : 0;
+    const midNorm = levels ? clamp01((levels.mid - 0.2) / 0.6) : 0;
+    const settle = Math.min(1, dt * 0.7);
+    this.audioBaseLow += (lowNorm - this.audioBaseLow) * settle;
+    this.audioBaseMid += (midNorm - this.audioBaseMid) * settle;
+    const wantLow = 0.3 * lowNorm + 0.7 * clamp01((lowNorm - this.audioBaseLow) * 4);
+    const wantBeat = clamp01((midNorm - this.audioBaseMid) * 4);
+    const follow = (current: number, want: number) => current + (want - current) * Math.min(1, dt * (want > current ? 12 : 4));
+    this.uAudioLow.value = follow(this.uAudioLow.value, wantLow);
+    this.uAudioHigh.value = follow(this.uAudioHigh.value, wantBeat);
     this.uEnergy.value *= Math.pow(0.02, dt);
     if (this.uEnergy.value < 0.002) this.uEnergy.value = 0;
 

@@ -25,6 +25,12 @@ pnpm preview
 - `src/audio/` — Web Audio radio cues; plans are pure and tested for duration/peak.
 - `src/styles/` — tokens (`@property`, `@function`, oklch relative colors), scroll-driven animations, `scroll-state()` container query, `corner-shape`, `sibling-index()`, `text-box`, anchor positioning, popover, `@starting-style`.
 
+## Broadcast audio
+
+`public/audio/` holds the radio layer: a static bed, three cues (squelch, chirp, roger), a 75 s ambient theme, and a 40 s instrumental bed plus a 16 s texture loop per station. All generated with ElevenLabs (Eleven Music v2 with `force_instrumental`, Sound Effects v2 with `loop`) by `scripts/broadcast.mjs`; prompts live in that file. Regenerate one clip with `node scripts/broadcast.mjs --force --only flea-bed`; `--dry` lists jobs. Needs `ELEVENLABS_API_KEY` in `.env` (gitignored). A full batch is about eight minutes of audio.
+
+At runtime everything stays behind the masthead power switch. `src/audio/mixer.ts` trims silence, loudness-normalizes each clip to a per-bus RMS target, loops with overlapping crossfades, crossfades beds between stations, ducks under an open dossier, and exposes analyser band levels that drive the particle field (`uAudioLow` → turbulence and carrier amplitude, `uAudioHigh` → sprite brightness pulses, both relative to a slow baseline so they follow beats, not volume). Missing files fall back to the synthesized cues in `src/audio/cues.ts`.
+
 ## Blender artifacts
 
 The Ting mic and the Seevie stick are modeled with primitives in a Blender scene named `Portfolio` (kept separate from any open scene) and sampled to colored point clouds by `blender/sample_clouds.py`. To regenerate: open Blender with the MCP add-on connected, then run the script via the MCP `execute_blender_code` tool (or paste it into the Text Editor). It writes `public/clouds/ting.bin` and `stick.bin` (65,536 front-hemisphere surface samples each, ~590 KB).

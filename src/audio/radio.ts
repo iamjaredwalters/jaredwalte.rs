@@ -1,46 +1,86 @@
 import { chirpPlan, rogerPlan, squelchPlan, type CuePlan } from './cues';
+import { MANIFEST, clipsForZone, preloadOrder } from './manifest';
+import { Mixer, type Levels } from './mixer';
+
+type CueName = 'squelch' | 'chirp' | 'roger';
+
+const SILENT: Levels = { low: 0, mid: 0, high: 0, rms: 0 };
+const STATIC_LOCKED = 0.16;
+const STATIC_OPEN = 0.5;
+const TEXTURE_LEVEL = 0.6;
 
 export class Radio {
-  private context: AudioContext | null = null;
+  private mixer: Mixer | null = null;
   private noise: AudioBuffer | null = null;
-  private master: GainNode | null = null;
+  private zone = 'carrier';
+  private lockTimer: number | undefined;
   enabled = false;
 
   async power(on: boolean): Promise<void> {
     this.enabled = on;
     if (!on) {
-      await this.context?.suspend();
+      await this.mixer?.suspend();
       return;
     }
-    if (!this.context) {
-      this.context = new AudioContext();
-      this.master = this.context.createGain();
-      this.master.gain.value = 0.9;
-      const compressor = this.context.createDynamicsCompressor();
-      compressor.threshold.value = -12;
-      compressor.ratio.value = 6;
-      this.master.connect(compressor).connect(this.context.destination);
-      this.noise = this.makeNoise(this.context);
+    if (!this.mixer) {
+      this.mixer = new Mixer();
+      this.noise = makeNoise(this.mixer.ctx);
+      void this.preload();
     }
-    await this.context.resume();
-    this.play(chirpPlan());
+    await this.mixer.resume();
+    void this.cue('chirp');
+    await this.tune(this.zone, true);
   }
 
-  squelch(): void {
-    this.play(squelchPlan());
+  async tune(zoneId: string, initial = false): Promise<void> {
+    this.zone = zoneId;
+    if (!this.enabled || !this.mixer) return;
+    const clips = clipsForZone(zoneId);
+    if (!initial) void this.cue('squelch');
+    void this.mixer.playLoop('static', MANIFEST.static, clips.bed ? STATIC_LOCKED : STATIC_OPEN);
+    void this.mixer.playLoop('bed', clips.bed, clips.bedLevel);
+    void this.mixer.playLoop('texture', clips.texture, TEXTURE_LEVEL);
+    window.clearTimeout(this.lockTimer);
+    if (!initial && MANIFEST.stations[zoneId]) {
+      this.lockTimer = window.setTimeout(() => {
+        if (this.zone === zoneId) void this.cue('roger');
+      }, 1400);
+    }
   }
 
   chirp(): void {
-    this.play(chirpPlan());
+    void this.cue('chirp');
   }
 
-  roger(): void {
-    this.play(rogerPlan());
+  squelch(): void {
+    void this.cue('squelch');
   }
 
-  private play(plan: CuePlan): void {
-    if (!this.enabled || !this.context || !this.master || !this.noise) return;
-    const ctx = this.context;
+  duck(on: boolean): void {
+    this.mixer?.duck(on);
+  }
+
+  levels(): Levels {
+    return this.enabled && this.mixer ? this.mixer.levels() : SILENT;
+  }
+
+  private async preload(): Promise<void> {
+    if (!this.mixer) return;
+    for (const url of preloadOrder(this.zone)) {
+      const bus = url === MANIFEST.static ? 'static' : url.includes('-texture') ? 'texture' : Object.values(MANIFEST.cues).includes(url) ? 'cues' : 'bed';
+      await this.mixer.load(url, bus);
+    }
+  }
+
+  private async cue(name: CueName): Promise<void> {
+    if (!this.enabled || !this.mixer) return;
+    const played = await this.mixer.playOnce(MANIFEST.cues[name], name === 'squelch' ? 0.8 : 0.7);
+    if (!played) this.synth(name === 'squelch' ? squelchPlan() : name === 'chirp' ? chirpPlan() : rogerPlan());
+  }
+
+  private synth(plan: CuePlan): void {
+    if (!this.mixer || !this.noise) return;
+    const ctx = this.mixer.ctx;
     const now = ctx.currentTime;
     for (const segment of plan.segments) {
       const start = now + segment.startMs / 1000;
@@ -50,7 +90,7 @@ export class Radio {
       gain.gain.exponentialRampToValueAtTime(segment.peak, start + 0.006);
       gain.gain.setValueAtTime(segment.peak, Math.max(start + 0.006, end - 0.04));
       gain.gain.exponentialRampToValueAtTime(0.0001, end);
-      gain.connect(this.master);
+      gain.connect(this.mixer.cueBus);
       if (segment.kind === 'tone') {
         const osc = ctx.createOscillator();
         osc.type = segment.wave;
@@ -71,12 +111,11 @@ export class Radio {
       }
     }
   }
+}
 
-  private makeNoise(ctx: AudioContext): AudioBuffer {
-    const seconds = 1;
-    const buffer = ctx.createBuffer(1, ctx.sampleRate * seconds, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-    return buffer;
-  }
+function makeNoise(ctx: AudioContext): AudioBuffer {
+  const buffer = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buffer;
 }

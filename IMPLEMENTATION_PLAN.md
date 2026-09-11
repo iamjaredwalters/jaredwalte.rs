@@ -52,6 +52,12 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Tests**: manual smoke on the preview URL.
 **Status**: Not Started (CLI is logged in as jaredwalters-5175; run `vercel` when ready)
 
+## Stage 8: Broadcast audio (ElevenLabs)
+**Goal**: instrumental beds and sound textures per station, generated offline with the ElevenLabs API; a mixer with crossfades, loop seams, loudness normalization, ducking; analyser levels feed the field.
+**Success Criteria**: power on → static + theme; tuning crossfades beds with squelch and roger; dossier ducks; field reacts to beats; no console errors; clips normalized so nothing is inaudible or clipping.
+**Tests**: crossfade plan, loop segments, band levels, manifest order, loudness trim/normalize (vitest).
+**Status**: Complete (2026-09-10). Levels tuned by measurement, not by ear yet.
+
 ## Follow-ups
 - Real device screenshots or short clips inside dossiers (Seevie stick, Ting) once assets are picked.
 - Light theme if ever wanted (tokens are oklch; the field is dark-first).
