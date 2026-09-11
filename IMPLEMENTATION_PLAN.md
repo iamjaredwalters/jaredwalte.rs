@@ -46,11 +46,11 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Tests**: build passes; smoke test via Playwright screenshot.
 **Status**: Complete (Lighthouse not run)
 
-## Stage 7: Live preview (Vercel)
-**Goal**: deploy to a Vercel preview URL so the site can be reviewed on any device.
-**Success Criteria**: `vercel` from the repo root succeeds; preview URL renders the hero in WebGPU.
-**Tests**: manual smoke on the preview URL.
-**Status**: Not Started (CLI is logged in as jaredwalters-5175; run `vercel` when ready)
+## Stage 7: Hosting (Cloudflare Pages)
+**Goal**: deploy `dist/` to Cloudflare Pages (`wrangler pages deploy dist`), custom domain jaredwalte.rs. Static output, hash routing, no rewrites or functions needed.
+**Success Criteria**: the hero renders in WebGPU on the Pages URL; brotli and immutable asset caching are on by default.
+**Tests**: manual smoke on the Pages URL, plus the Firefox rig against it.
+**Status**: Not Started (decided 2026-09-11; not ready to deploy yet)
 
 ## Stage 8: Broadcast audio (ElevenLabs)
 **Goal**: instrumental beds and sound textures per station, generated offline with the ElevenLabs API; a mixer with crossfades, loop seams, loudness normalization, ducking; analyser levels feed the field.
