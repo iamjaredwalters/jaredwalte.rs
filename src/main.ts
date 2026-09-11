@@ -1,5 +1,5 @@
 import { Radio } from '@/audio/radio';
-import { ALSO_ON_AIR, STATIONS, type Station } from '@/data/stations';
+import { ALSO_ON_AIR, STATIONS, applyTint, type Station, type TintName } from '@/data/stations';
 import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
@@ -94,7 +94,7 @@ async function boot(): Promise<void> {
   const proceduralByArtifact: Record<string, [keyof typeof PROCEDURAL, TargetOptions]> = {
     globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.22 } }],
     dome: ['dome', { scale: 0.85, spin: 0.7, tilt: 0.12, pitch: 0.18, distance: 3.0, react: { radial: 0.16 } }],
-    graph: ['graph', { scale: 0.72, spin: 0.8, tilt: 0.15, pitch: 0.2, distance: 3.2, react: { radial: 0.3 } }],
+    calendar: ['calendar', { scale: 0.68, spin: 0.35, tilt: 0.12, pitch: 0.08, distance: 3.2, react: { radial: 0.12 } }],
     ledger: ['ledger', { scale: 0.8, spin: 0.25, tilt: 0.3, pitch: 0.55, distance: 3.1, react: { vertical: 0.6, floor: -0.4 } }],
     terrain: ['terrain', { scale: 0.75, spin: 0.2, tilt: 0.35, pitch: 0.5, distance: 3.1, react: { vertical: 0.45, floor: -0.62 } }],
   };
@@ -114,7 +114,8 @@ async function boot(): Promise<void> {
     const changed = zoneId !== active;
     active = zoneId;
     const station = zone.station;
-    document.documentElement.style.setProperty('--hue', String(station?.hue ?? (zoneId === 'portrait' ? 30 : 38)));
+    const zoneTint: TintName = station?.tint ?? (zoneId === 'portrait' ? 'rose' : zoneId === 'shell' ? 'ivory' : 'verdigris');
+    applyTint(document.documentElement, zoneTint);
     field.setFraming(zone.framing());
     if (field.hasTarget(zone.slot)) field.tuneTo(zone.slot, immediate);
     const readout = station ?? (zoneId === 'portrait' ? portraitStation : zoneId === 'carrier' || zoneId === 'contact' ? carrierStation : shellStation);
@@ -180,7 +181,7 @@ async function boot(): Promise<void> {
         const zone = zones.get(station.id);
         if (!zone) return;
         active = station.id;
-        document.documentElement.style.setProperty('--hue', String(station.hue));
+        applyTint(document.documentElement, station.tint);
         field.setFraming(wide.matches ? { offsetX: 1.1, offsetY: 0, zoom: 1 } : { offsetX: 0, offsetY: 0.85, zoom: 1.35 });
         field.tuneTo(zone.slot);
         field.pulse(0.6);

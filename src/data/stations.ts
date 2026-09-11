@@ -4,10 +4,25 @@ export type ArtifactKind =
   | 'ting'
   | 'globe'
   | 'dome'
-  | 'graph'
+  | 'calendar'
   | 'ledger'
   | 'terrain'
   | 'portrait';
+
+export type TintName = 'verdigris' | 'rose' | 'lilac' | 'ivory';
+
+export interface Tint {
+  l: number;
+  c: number;
+  h: number;
+}
+
+export const TINTS: Record<TintName, Tint> = {
+  verdigris: { l: 0.78, c: 0.1, h: 168 },
+  rose: { l: 0.78, c: 0.11, h: 355 },
+  lilac: { l: 0.8, c: 0.09, h: 305 },
+  ivory: { l: 0.92, c: 0.035, h: 80 },
+};
 
 export interface StationLink {
   label: string;
@@ -20,7 +35,7 @@ export interface Station {
   name: string;
   frequency: string;
   band: string;
-  hue: number;
+  tint: TintName;
   artifact: ArtifactKind;
   pitch: string;
   brief: string;
@@ -37,7 +52,7 @@ export const STATIONS: Station[] = [
     name: 'Seevie',
     frequency: '2400.000',
     band: 'MHz',
-    hue: 205,
+    tint: 'verdigris',
     artifact: 'stick',
     pitch: 'Your agent, on a thumb drive.',
     brief:
@@ -57,7 +72,7 @@ export const STATIONS: Station[] = [
     name: 'Ting Radio',
     frequency: '296.800',
     band: 'MHz',
-    hue: 24,
+    tint: 'rose',
     artifact: 'ting',
     pitch: 'A walkie-talkie for Claude Code.',
     brief:
@@ -77,7 +92,7 @@ export const STATIONS: Station[] = [
     name: 'Thereabouts',
     frequency: '1575.420',
     band: 'MHz',
-    hue: 145,
+    tint: 'lilac',
     artifact: 'globe',
     pitch: 'Every song you saved, and where you were.',
     brief:
@@ -97,7 +112,7 @@ export const STATIONS: Station[] = [
     name: 'Vela',
     frequency: '1420.405',
     band: 'MHz',
-    hue: 290,
+    tint: 'ivory',
     artifact: 'dome',
     pitch: 'Your personal constellation.',
     brief:
@@ -112,24 +127,24 @@ export const STATIONS: Station[] = [
     links: [],
   },
   {
-    id: 'executor',
-    callsign: 'RELAY',
-    name: 'Executor',
-    frequency: '443.000',
+    id: 'add2cal',
+    callsign: 'TIMECHECK',
+    name: 'add2cal',
+    frequency: '10.000',
     band: 'MHz',
-    hue: 60,
-    artifact: 'graph',
-    pitch: 'Connect any agent to everything.',
+    tint: 'verdigris',
+    artifact: 'calendar',
+    pitch: 'Photo of a flyer in, calendar event out.',
     brief:
-      'One integration catalog shared by every agent you run: Claude Code, Cursor, ChatGPT. Models write short programs against connected services; they run in throwaway isolates with per-tool auth and approval policy. Open source, self-hostable, and the bridge Seevie uses under the hood.',
+      'Point your phone at a flyer, an invite, a whiteboard or a screenshot and get back a calendar event with the date, time and place filled in, ready to save. A shipped product, now moving from a web subscription to a one-time purchase on the App Store.',
     details: [
-      'Sandboxed model-authored code in QuickJS isolates; secrets resolve only at a fetch gateway, never in the sandbox.',
-      'MCP, OpenAPI and GraphQL sources normalize into one catalog with search instead of a thousand tool definitions.',
-      'A sibling project ships wire-level emulators of GitHub, Stripe, Google and friends for real integration tests.',
+      'One Lambda serves both the HTTP API and the S3-triggered image pipeline, all of it declared in CloudFormation.',
+      'Gemini reads the image; Hono, Supabase auth with Google sign-in, and a React 19 front end handle the rest.',
+      'An Expo iOS app is in progress for the paid version.',
     ],
-    stack: ['TypeScript / Bun', 'Effect', 'QuickJS', 'Postgres / Drizzle', 'Cloudflare'],
+    stack: ['Hono on AWS Lambda', 'S3 + CloudFront', 'Supabase', 'Gemini', 'React 19', 'Expo'],
     year: '2025–26',
-    links: [{ label: 'executor.sh', href: 'https://executor.sh' }],
+    links: [{ label: 'add2cal.app', href: 'https://add2cal.app' }],
   },
   {
     id: 'aleph',
@@ -137,7 +152,7 @@ export const STATIONS: Station[] = [
     name: 'Aleph',
     frequency: '162.400',
     band: 'MHz',
-    hue: 100,
+    tint: 'rose',
     artifact: 'ledger',
     pitch: 'What did I work on, and when?',
     brief:
@@ -157,7 +172,7 @@ export const STATIONS: Station[] = [
     name: 'Flea',
     frequency: '27.145',
     band: 'MHz',
-    hue: 190,
+    tint: 'lilac',
     artifact: 'terrain',
     pitch: 'A robot with a spring-loaded leg, and a world to cross.',
     brief:
@@ -174,12 +189,18 @@ export const STATIONS: Station[] = [
 ];
 
 export const ALSO_ON_AIR: StationLink[] = [
-  { label: 'add2cal.app — photo of a flyer in, calendar event out', href: 'https://add2cal.app' },
-  { label: 'guyver.io — a 3D-printed EDC blade, sold one at a time', href: 'https://guyver.io' },
   { label: 'brewbot.app — which food truck is at the brewery tonight', href: 'https://brewbot.app' },
+  { label: 'guyver.io — a 3D-printed EDC blade, sold one at a time', href: 'https://guyver.io' },
   { label: 'tellusastral.com — the umbrella', href: 'https://tellusastral.com' },
 ];
 
 export function stationById(id: string): Station | undefined {
   return STATIONS.find((station) => station.id === id);
+}
+
+export function applyTint(element: HTMLElement, name: TintName): void {
+  const tint = TINTS[name];
+  element.style.setProperty('--hue', String(tint.h));
+  element.style.setProperty('--accent-l', String(tint.l));
+  element.style.setProperty('--accent-c', String(tint.c));
 }

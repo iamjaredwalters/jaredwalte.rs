@@ -107,9 +107,9 @@ function noise2(x: number, z: number): number {
 export function carrier(count: number, seed = 1): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const amber = hsl(38, 0.9, 0.62);
-  const cream = hsl(40, 0.5, 0.9);
-  const dim = hsl(30, 0.6, 0.3);
+  const amber = hsl(168, 0.42, 0.66);
+  const cream = hsl(45, 0.3, 0.94);
+  const dim = hsl(168, 0.3, 0.3);
   w.fillRest((wr) => {
     const x = (rng() * 2 - 1) * 1.7;
     const z = (rng() * 2 - 1) * 0.55;
@@ -129,7 +129,7 @@ export function carrier(count: number, seed = 1): TargetData {
 export function shell(count: number, seed = 2): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const c = hsl(40, 0.4, 0.55);
+  const c = hsl(45, 0.2, 0.6);
   w.fillRest((wr) => {
     const p = onSphere(rng, 0.9 + gauss(rng) * 0.01);
     wr.put(p[0], p[1], p[2], c[0], c[1], c[2]);
@@ -141,10 +141,10 @@ export function globe(count: number, seed = 3): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
   const R = 0.82;
-  const line = hsl(145, 0.8, 0.55);
-  const faint = hsl(150, 0.5, 0.18);
-  const pinHead = hsl(145, 0.9, 0.75);
-  const pinStem = hsl(40, 0.5, 0.85);
+  const line = hsl(282, 0.55, 0.68);
+  const faint = hsl(282, 0.35, 0.22);
+  const pinHead = hsl(352, 0.8, 0.74);
+  const pinStem = hsl(45, 0.3, 0.9);
   const tilt = 0.41;
   const rot = (p: Vec3): Vec3 => [
     p[0] * Math.cos(tilt) - p[1] * Math.sin(tilt),
@@ -202,10 +202,10 @@ export function globe(count: number, seed = 3): TargetData {
 export function dome(count: number, seed = 4): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const horizon = hsl(290, 0.35, 0.5);
-  const sky = hsl(280, 0.4, 0.16);
-  const lineColor = hsl(300, 0.4, 0.62);
-  const starTints: Vec3[] = [hsl(40, 0.5, 0.92), hsl(330, 0.6, 0.85), hsl(270, 0.6, 0.85), hsl(190, 0.5, 0.88)];
+  const horizon = hsl(45, 0.3, 0.72);
+  const sky = hsl(285, 0.25, 0.14);
+  const lineColor = hsl(285, 0.4, 0.66);
+  const starTints: Vec3[] = [hsl(45, 0.35, 0.93), hsl(352, 0.6, 0.84), hsl(285, 0.5, 0.84), hsl(168, 0.45, 0.82)];
   const R = 1.0;
   const horizonCount = Math.floor(count * 0.08);
   for (let i = 0; i < horizonCount; i++) {
@@ -258,46 +258,95 @@ export function dome(count: number, seed = 4): TargetData {
   return w.data();
 }
 
-export function graph(count: number, seed = 5): TargetData {
+export function calendar(count: number, seed = 5): TargetData {
   const rng = mulberry32(seed);
   const w = new Writer(count);
-  const hub = hsl(48, 0.95, 0.65);
-  const node = hsl(45, 0.5, 0.9);
-  const edge = hsl(50, 0.7, 0.42);
-  const agent = hsl(200, 0.7, 0.75);
-  const nodes: Vec3[] = [];
-  const nodeCount = 26;
-  const golden = Math.PI * (3 - Math.sqrt(5));
-  for (let i = 0; i < nodeCount; i++) {
-    const y = 1 - (i / (nodeCount - 1)) * 2;
-    const r = Math.sqrt(1 - y * y);
-    const t = golden * i;
-    nodes.push([Math.cos(t) * r * 0.85, y * 0.85, Math.sin(t) * r * 0.85]);
+  const teal = hsl(168, 0.55, 0.6);
+  const tealDim = hsl(168, 0.45, 0.3);
+  const cream = hsl(45, 0.3, 0.92);
+  const creamDim = hsl(45, 0.2, 0.48);
+  const tile = hsl(352, 0.8, 0.72);
+  const arc = hsl(285, 0.6, 0.72);
+  const page: Vec3 = [0.2, 0.05, -0.05];
+  const pageW = 1.35;
+  const pageH = 1.1;
+  const cols = 7;
+  const rows = 5;
+  const headerH = 0.16;
+  const gridTop = page[1] + pageH / 2 - headerH;
+  const gridBottom = page[1] - pageH / 2;
+  const left = page[0] - pageW / 2;
+  const right = page[0] + pageW / 2;
+  const cellW = pageW / cols;
+  const cellH = (gridTop - gridBottom) / rows;
+  const outline = Math.floor(count * 0.1);
+  const perSide = Math.floor(outline / 4);
+  segment(w, [left, gridBottom, page[2]], [right, gridBottom, page[2]], perSide, teal, rng);
+  segment(w, [right, gridBottom, page[2]], [right, page[1] + pageH / 2, page[2]], perSide, teal, rng);
+  segment(w, [right, page[1] + pageH / 2, page[2]], [left, page[1] + pageH / 2, page[2]], perSide, teal, rng);
+  segment(w, [left, page[1] + pageH / 2, page[2]], [left, gridBottom, page[2]], perSide, teal, rng);
+  const headerCount = Math.floor(count * 0.08);
+  for (let i = 0; i < headerCount; i++) {
+    w.put(left + rng() * pageW, gridTop + rng() * headerH, page[2] + gauss(rng) * 0.004, teal[0], teal[1], teal[2]);
   }
-  const agents: Vec3[] = [
-    [-1.25, 0.35, 0],
-    [-1.25, -0.35, 0],
-    [1.25, 0, 0],
+  const gridCount = Math.floor(count * 0.22);
+  const perLine = Math.floor(gridCount / (cols + rows));
+  for (let c = 1; c < cols; c++) segment(w, [left + c * cellW, gridBottom, page[2]], [left + c * cellW, gridTop, page[2]], perLine, tealDim, rng, 0.002);
+  for (let r = 1; r < rows; r++) segment(w, [left, gridBottom + r * cellH, page[2]], [right, gridBottom + r * cellH, page[2]], perLine, tealDim, rng, 0.002);
+  const events: [number, number, number][] = [
+    [2, 3, 0.55],
+    [4, 2, 0.55],
+    [1, 1, 0.55],
+    [5, 1, 1],
   ];
-  clump(w, [0, 0, 0], Math.floor(count * 0.1), 0.06, hub, rng);
-  const edgeBudget = Math.floor(count * 0.42);
-  const perEdge = Math.floor(edgeBudget / (nodeCount + agents.length + 10));
-  for (const n of nodes) segment(w, [0, 0, 0], n, perEdge, edge, rng, 0.0025);
-  for (const a of agents) segment(w, a, [0, 0, 0], perEdge, agent, rng, 0.0025);
-  for (let i = 0; i < 10; i++) {
-    const a = nodes[Math.floor(rng() * nodeCount)];
-    const b = nodes[Math.floor(rng() * nodeCount)];
-    if (a !== b) segment(w, a, b, perEdge, [edge[0] * 0.6, edge[1] * 0.6, edge[2] * 0.6], rng, 0.0025);
-  }
-  const perNode = Math.floor((w.remaining * 0.7) / nodeCount);
-  for (const n of nodes) clump(w, n, perNode, 0.022, node, rng);
-  const perAgent = Math.floor(w.remaining / agents.length);
-  for (const a of agents) {
-    for (let i = 0; i < perAgent; i++) {
-      w.put(a[0] + (rng() - 0.5) * 0.16, a[1] + (rng() - 0.5) * 0.16, a[2] + (rng() - 0.5) * 0.03, agent[0], agent[1], agent[2]);
+  const tileBudget = Math.floor(count * 0.16);
+  const tileWeight = events.reduce((sum, e) => sum + e[2], 0);
+  let highlight: Vec3 = [0, 0, 0];
+  for (const [c, r, weight] of events) {
+    const n = Math.floor((tileBudget * weight) / tileWeight);
+    const x0 = left + c * cellW + cellW * 0.12;
+    const y0 = gridBottom + r * cellH + cellH * 0.18;
+    for (let i = 0; i < n; i++) {
+      w.put(x0 + rng() * cellW * 0.76, y0 + rng() * cellH * 0.64, page[2] + 0.01 + gauss(rng) * 0.004, tile[0], tile[1], tile[2]);
     }
+    if (weight === 1) highlight = [x0 + cellW * 0.38, y0 + cellH * 0.32, page[2] + 0.02];
   }
-  w.fillRest((wr) => clump(wr, [0, 0, 0], 1, 0.06, hub, rng));
+  const flyerCenter: Vec3 = [-0.78, -0.02, 0.28];
+  const flyerW = 0.55;
+  const flyerH = 0.78;
+  const tilt = 0.2;
+  const onFlyer = (u: number, v: number): Vec3 => {
+    const x = (u - 0.5) * flyerW;
+    const y = (v - 0.5) * flyerH;
+    return [flyerCenter[0] + x * Math.cos(tilt) - y * Math.sin(tilt), flyerCenter[1] + x * Math.sin(tilt) + y * Math.cos(tilt), flyerCenter[2]];
+  };
+  const flyerOutline = Math.floor(count * 0.1);
+  const flyerSide = Math.floor(flyerOutline / 4);
+  segment(w, onFlyer(0, 0), onFlyer(1, 0), flyerSide, cream, rng);
+  segment(w, onFlyer(1, 0), onFlyer(1, 1), flyerSide, cream, rng);
+  segment(w, onFlyer(1, 1), onFlyer(0, 1), flyerSide, cream, rng);
+  segment(w, onFlyer(0, 1), onFlyer(0, 0), flyerSide, cream, rng);
+  const textLines = 6;
+  const perText = Math.floor((count * 0.08) / textLines);
+  for (let i = 0; i < textLines; i++) {
+    const v = 0.14 + i * 0.11;
+    const len = i === 0 ? 0.7 : 0.45 + (i % 3) * 0.12;
+    segment(w, onFlyer(0.15, v), onFlyer(0.15 + len, v), perText, i === 0 ? tile : creamDim, rng, 0.004);
+  }
+  const blob = onFlyer(0.5, 0.86);
+  clump(w, blob, Math.floor(count * 0.04), 0.045, tile, rng);
+  const arcCount = Math.floor(count * 0.1);
+  const from: Vec3 = onFlyer(0.95, 0.55);
+  for (let i = 0; i < arcCount; i++) {
+    const t = rng();
+    const x = from[0] + (highlight[0] - from[0]) * t;
+    const y = from[1] + (highlight[1] - from[1]) * t + 0.35 * 4 * t * (1 - t);
+    const z = from[2] + (highlight[2] - from[2]) * t;
+    w.put(x + gauss(rng) * 0.003, y + gauss(rng) * 0.003, z + gauss(rng) * 0.003, arc[0], arc[1], arc[2]);
+  }
+  w.fillRest((wr) => {
+    wr.put(left + rng() * pageW, gridBottom + rng() * (gridTop - gridBottom), page[2] - 0.01, tealDim[0] * 0.5, tealDim[1] * 0.5, tealDim[2] * 0.5);
+  });
   return w.data();
 }
 
@@ -320,7 +369,7 @@ export function ledger(count: number, seed = 6): TargetData {
   }
   const total = heights.reduce((a, b) => a + b, 0);
   const gridCount = Math.floor(count * 0.08);
-  const grid = hsl(100, 0.3, 0.2);
+  const grid = hsl(352, 0.3, 0.24);
   for (let i = 0; i < gridCount; i++) {
     const onX = rng() < 0.5;
     const x = onX ? (Math.floor(rng() * (cols + 1)) - cols / 2) * cellX : (rng() - 0.5) * 2.2;
@@ -336,7 +385,7 @@ export function ledger(count: number, seed = 6): TargetData {
       const z0 = (d - rows / 2) * cellZ + cellZ * 0.12;
       const sx = cellX * 0.76;
       const sz = cellZ * 0.76;
-      const c = hsl(100, 0.85, 0.3 + height * 0.7);
+      const c = hsl(352, 0.75, 0.34 + height * 0.56);
       for (let i = 0; i < n; i++) {
         const face = rng();
         let x: number;
@@ -370,9 +419,9 @@ export function terrain(count: number, seed = 7): TargetData {
   const size = 1.35;
   const heightAt = (x: number, z: number) => noise2(x * 1.6, z * 1.6) * 0.32 + 0.1 * Math.max(0, x);
   const surfaceCount = Math.floor(count * 0.78);
-  const snow = hsl(195, 0.35, 0.94);
-  const mid = hsl(192, 0.7, 0.6);
-  const low = hsl(200, 0.7, 0.28);
+  const snow = hsl(285, 0.3, 0.94);
+  const mid = hsl(285, 0.5, 0.68);
+  const low = hsl(275, 0.45, 0.3);
   for (let i = 0; i < surfaceCount; i++) {
     const x = (rng() * 2 - 1) * size;
     const z = (rng() * 2 - 1) * size * 0.7;
@@ -385,7 +434,7 @@ export function terrain(count: number, seed = 7): TargetData {
   }
   const start: Vec3 = [-0.75, heightAt(-0.75, 0.1) - 0.25 + 0.06, 0.1];
   const end: Vec3 = [0.55, heightAt(0.55, 0.1) - 0.25 + 0.06, 0.1];
-  const arcColor = hsl(45, 0.9, 0.7);
+  const arcColor = hsl(352, 0.8, 0.72);
   const arcCount = Math.floor(count * 0.08);
   for (let i = 0; i < arcCount; i++) {
     const t = rng();
@@ -394,7 +443,7 @@ export function terrain(count: number, seed = 7): TargetData {
     const y = start[1] + (end[1] - start[1]) * t + 4 * 0.42 * t * (1 - t);
     w.put(x + gauss(rng) * 0.003, y + gauss(rng) * 0.003, z + gauss(rng) * 0.003, arcColor[0], arcColor[1], arcColor[2]);
   }
-  const robot = hsl(20, 0.85, 0.6);
+  const robot = hsl(168, 0.6, 0.6);
   const bodyCount = Math.floor(w.remaining * 0.6);
   for (let i = 0; i < bodyCount; i++) {
     w.put(start[0] + (rng() - 0.5) * 0.12, start[1] + (rng() - 0.5) * 0.08 + 0.02, start[2] + (rng() - 0.5) * 0.1, robot[0], robot[1], robot[2]);
@@ -408,7 +457,7 @@ export const PROCEDURAL = {
   shell,
   globe,
   dome,
-  graph,
+  calendar,
   ledger,
   terrain,
 } as const;

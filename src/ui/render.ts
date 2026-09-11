@@ -1,4 +1,4 @@
-import type { Station, StationLink } from '@/data/stations';
+import { applyTint, type Station, type StationLink } from '@/data/stations';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -27,7 +27,7 @@ export function renderStations(container: HTMLElement, stations: Station[]): HTM
     article.id = `station-${station.id}`;
     article.dataset.station = station.id;
     article.dataset.zone = station.id;
-    article.style.setProperty('--hue', String(station.hue));
+    applyTint(article, station.tint);
     article.style.setProperty('--chars', String(station.name.length));
 
     const text = el('div', 'station__text');

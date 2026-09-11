@@ -1,7 +1,19 @@
 @property --hue {
   syntax: '<number>';
   inherits: true;
-  initial-value: 38;
+  initial-value: 168;
+}
+
+@property --accent-l {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.78;
+}
+
+@property --accent-c {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.1;
 }
 
 @property --signal {
@@ -28,15 +40,17 @@
 
 :root {
   color-scheme: dark;
-  --hue: 38;
-  --ink: oklch(14% 0.008 300);
-  --ink-2: oklch(19% 0.01 300);
-  --ink-3: oklch(26% 0.012 300);
-  --paper: oklch(93% 0.02 80);
-  --paper-2: oklch(78% 0.02 80);
-  --muted: oklch(62% 0.018 80);
+  --hue: 168;
+  --accent-l: 0.78;
+  --accent-c: 0.1;
+  --ink: #131110;
+  --ink-2: oklch(from var(--ink) calc(l + 0.05) c h);
+  --ink-3: oklch(from var(--ink) calc(l + 0.12) c h);
+  --paper: oklch(92% 0.035 80);
+  --paper-2: oklch(78% 0.03 80);
+  --muted: oklch(62% 0.025 80);
   --line: oklch(from var(--paper) l c h / 0.14);
-  --accent: oklch(78% 0.17 var(--hue));
+  --accent: oklch(calc(var(--accent-l) * 100%) var(--accent-c) var(--hue));
   --accent-soft: oklch(from var(--accent) l c h / 0.18);
   --accent-ink: oklch(from var(--accent) 22% 0.06 h);
   --glow: oklch(from var(--accent) l c h / 0.5);
@@ -54,7 +68,7 @@
   --ease-radio: linear(0, 0.1 5%, 0.9 22%, 1.04 32%, 0.98 45%, 1);
   --dur: 600ms;
 
-  transition: --hue 900ms var(--ease-out);
+  transition: --hue 900ms var(--ease-out), --accent-l 900ms var(--ease-out), --accent-c 900ms var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

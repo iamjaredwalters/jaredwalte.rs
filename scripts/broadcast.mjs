@@ -51,10 +51,10 @@ const JOBS = [
     prompt: `Night-sky ambient: slow wordless choral pads, celesta, a deep sub drone, sparse twinkling high notes, ${MOTIF} on celesta. Weightless, reverent, very slow. ${NO_VOCALS} No choir words, only sustained vowel-less pads.`,
   },
   {
-    file: 'executor-bed.mp3',
+    file: 'add2cal-bed.mp3',
     kind: 'music',
     ms: 40000,
-    prompt: `Motorik krautrock pulse at 110 BPM: analog sequencer sixteenth notes, filtered and restrained, soft kick, ${MOTIF} on the sequencer, machine-like precision with warmth. ${NO_VOCALS}`,
+    prompt: `Bright, tidy electronica at 100 BPM: marimba and soft plucks, clockwork ticking percussion, warm round bass, ${MOTIF} on marimba. Organized, sunny, quietly satisfying. ${NO_VOCALS}`,
   },
   {
     file: 'aleph-bed.mp3',
@@ -72,7 +72,7 @@ const JOBS = [
   { file: 'ting-radio-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Apollo-era mission control room ambience: low murmur of distant activity, a far-off teletype clattering briefly, soft relay clicks, air handling rumble, no clear voices, no hiss, seamless loop' },
   { file: 'thereabouts-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Field recording on a coastal street: distant surf, light breeze, far-off traffic, one camera shutter click, seamless loop' },
   { file: 'vela-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Still night air on a high hill: a soft deep space drone, very distant low wind, an occasional slow low swell, no crickets, no insects, no high-pitched sounds, seamless loop' },
-  { file: 'executor-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Quiet data center detail: occasional relay clicks, disk ticks and a soft drive spin-up, spaced out over silence, no constant fan noise, no hum, seamless loop' },
+  { file: 'add2cal-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Paper foley over quiet room tone: a flyer unfolding and rustling, a phone camera shutter, a pen tick, a calendar page turning, spaced out over several seconds, no hiss, seamless loop' },
   { file: 'aleph-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Quiet office at night: mechanical keyboard typing in short bursts, soft terminal beeps, a distant clock tick, seamless loop' },
   { file: 'flea-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Snowy hillside: wind gusts, footsteps crunching in dry snow, an occasional metallic spring twang, seamless loop' },
 ];

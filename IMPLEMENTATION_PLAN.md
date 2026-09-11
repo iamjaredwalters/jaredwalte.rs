@@ -58,6 +58,12 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Tests**: crossfade plan, loop segments, band levels, manifest order, loudness trim/normalize (vitest).
 **Status**: Complete (2026-09-10). Levels tuned by measurement, not by ear yet.
 
+## Stage 9: Roster and palette
+**Goal**: drop Executor (not Jared's project), promote add2cal to station 05 with a calendar artifact; replace the orange/blue rainbow with a vintage-instrument palette (verdigris primary, dusty rose, lilac, ivory on bakelite) across CSS, particles, Blender materials and the favicon.
+**Success Criteria**: no orange, blue or yellow accents anywhere; each artifact still legible; models rebuilt from `blender/build_models.py`.
+**Tests**: existing generator/manifest tests cover the new station.
+**Status**: Complete (2026-09-10)
+
 ## Follow-ups
 - Real device screenshots or short clips inside dossiers (Seevie stick, Ting) once assets are picked.
 - Light theme if ever wanted (tokens are oklch; the field is dark-first).

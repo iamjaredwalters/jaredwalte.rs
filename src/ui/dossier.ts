@@ -1,4 +1,4 @@
-import type { Station } from '@/data/stations';
+import { applyTint, type Station } from '@/data/stations';
 import { stationName } from './render';
 import { hashForStation, neighbor } from './router';
 
@@ -76,7 +76,7 @@ export class Dossier {
     const wasOpen = this.openId !== null;
     const source = document.querySelector<HTMLElement>(`#station-${id} .station__name`);
     if (source && !wasOpen) source.style.viewTransitionName = NAME;
-    this.els.dialog.style.setProperty('--hue', String(station.hue));
+    applyTint(this.els.dialog, station.tint);
     this.els.dialog.style.setProperty('--chars', String(station.name.length));
     if (!pushHash) document.getElementById(`station-${id}`)?.scrollIntoView({ block: 'start', behavior: 'instant' });
     document.documentElement.classList.add('dossier-open');

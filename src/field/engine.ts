@@ -151,7 +151,7 @@ export class Field {
 
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
     this.camera.position.set(0, 0, DEFAULT_TARGET.distance);
-    this.scene.background = new THREE.Color(0x0b0a0c);
+    this.scene.background = new THREE.Color(0x131110);
 
     this.targetPosArray = new Float32Array(targetPoints * targetCount * 4);
     this.targetColArray = new Float32Array(targetPoints * targetCount * 4);
