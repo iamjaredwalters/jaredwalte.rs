@@ -27,7 +27,7 @@ describe('procedural targets', () => {
     }
   });
 
-  it.each(['globe', 'dome', 'calendar', 'phone'] as ProceduralKind[])('%s marks hot nodes with weights in [0, 1]', (kind) => {
+  it.each(['globe', 'dome', 'calendar'] as ProceduralKind[])('%s marks hot nodes with weights in [0, 1]', (kind) => {
     const data = PROCEDURAL[kind](2048);
     expect(data.weights).toBeDefined();
     expect(data.weights!.length).toBe(2048);

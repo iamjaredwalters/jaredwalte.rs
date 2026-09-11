@@ -34,6 +34,20 @@ describe('cloud codec', () => {
     expect(decoded.extent).toEqual([1, 2, 3]);
   });
 
+  it('round-trips hot weights in version 2', () => {
+    const original = synthetic(32);
+    original.weights = new Float32Array(32).map((_, i) => (i % 4) / 3);
+    const decoded = decodeCloud(encodeCloud(original));
+    expect(decoded.weights).toBeDefined();
+    for (let i = 0; i < 32; i++) {
+      expect(Math.abs(decoded.weights![i] - original.weights[i])).toBeLessThan(1 / 255 + 1e-6);
+    }
+  });
+
+  it('leaves weights undefined for version 1', () => {
+    expect(decodeCloud(encodeCloud(synthetic(8))).weights).toBeUndefined();
+  });
+
   it('rejects a bad magic', () => {
     expect(() => decodeCloud(new ArrayBuffer(24))).toThrow(/magic/);
   });

@@ -145,7 +145,6 @@ async function boot(): Promise<void> {
 
   field.setTarget(SLOT.carrier, PROCEDURAL.carrier(TARGET_POINTS), { scale: 1, wave: 0.16, spin: 0, tilt: 0.25, distance: 3.2 });
   field.setTarget(SLOT.shell, PROCEDURAL.shell(TARGET_POINTS), { scale: 1, spin: 0.05, distance: 3.4, react: { radial: 0.2 } });
-  field.setTarget(SLOT.phone, PROCEDURAL.phone(TARGET_POINTS), { scale: 0.5, spin: 0.3, tilt: 0.12, pitch: 0.06, distance: 3.1, react: { z: 0.06 } });
 
   const proceduralByArtifact: Record<string, [keyof typeof PROCEDURAL, TargetOptions]> = {
     globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.11 } }],
@@ -312,12 +311,18 @@ async function boot(): Promise<void> {
             station.artifact === 'ting'
               ? { scale: 0.7, spin: 0.35, tilt: 0.12, pitch: 0.05, distance: 3.2, bright: 0.75, react: { radial: 0.05 } }
               : { scale: 0.7, spin: 0.4, tilt: 0.12, pitch: 0.05, distance: 3.2, bright: 0.75, react: { radial: 0.05 } };
-          field.setTarget(STATION_SLOT(index), { positions: cloud.positions, colors: cloud.colors }, options);
+          field.setTarget(STATION_SLOT(index), { positions: cloud.positions, colors: cloud.colors, weights: cloud.weights }, options);
           updateDial();
         }),
       );
     }
   });
+  loads.push(
+    loadCloud('/clouds/handset.bin').then((cloud) => {
+      field.setTarget(SLOT.phone, { positions: cloud.positions, colors: cloud.colors, weights: cloud.weights }, { scale: 0.62, spin: 0.35, tilt: 0.12, pitch: 0.0, distance: 3.1, bright: 0.75, react: { z: 0.06 } });
+      updateDial();
+    }),
+  );
   loads.push(
     portraitFromImage('/jared-jetski.webp', TARGET_POINTS, { floor: 0.05, gamma: 2.0 }).then((data) => {
       field.setTarget(SLOT.portrait, data, { scale: 0.8, spin: 0.14, tilt: 0.12, pitch: 0.02, distance: 2.9, bright: 0.55 });
