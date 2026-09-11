@@ -20,7 +20,7 @@ describe('loudness', () => {
   });
 
   it('normalizes a quiet clip up to the target rms', () => {
-    const quiet = tone(1, 0.01);
+    const quiet = tone(1, 0.05);
     const gain = normalizeGain(quiet, -20);
     const { rms } = measure(quiet.map((v) => v * gain));
     expect(gainToDb(rms)).toBeCloseTo(-20, 1);
@@ -30,6 +30,11 @@ describe('loudness', () => {
     const dense = tone(1, 0.9);
     const gain = normalizeGain(dense, 0, -1);
     expect(measure(dense.map((v) => v * gain)).peak).toBeLessThanOrEqual(dbToGain(-1) + 1e-6);
+  });
+
+  it('caps the boost for sparse clips', () => {
+    const sparse = tone(1, 0.001);
+    expect(gainToDb(normalizeGain(sparse, -20, -1, 18))).toBeCloseTo(18, 5);
   });
 
   it('leaves silence untouched', () => {

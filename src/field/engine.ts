@@ -7,7 +7,9 @@ import {
   instancedArray,
   length,
   mix,
+  mx_noise_float,
   mx_noise_vec3,
+  normalize,
   pass,
   screenUV,
   sin,
@@ -38,6 +40,12 @@ export interface FieldConfig {
   forceWebGL?: boolean;
 }
 
+export interface Reaction {
+  radial: number;
+  vertical: number;
+  floor: number;
+}
+
 export interface TargetOptions {
   scale?: number;
   wave?: number;
@@ -46,6 +54,7 @@ export interface TargetOptions {
   pitch?: number;
   distance?: number;
   bright?: number;
+  react?: Partial<Reaction>;
 }
 
 export interface Framing {
@@ -62,9 +71,11 @@ interface RegisteredTarget {
   pitch: number;
   distance: number;
   bright: number;
+  react: Reaction;
 }
 
-const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1 };
+const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1 };
+const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, react: NO_REACTION };
 
 export class Field {
   readonly backend: 'webgpu' | 'webgl';
@@ -104,6 +115,9 @@ export class Field {
   private readonly uBloom = uniform(0.4);
   private readonly uAudioLow = uniform(0);
   private readonly uAudioHigh = uniform(0);
+  private readonly uReactRadial = uniform(0);
+  private readonly uReactVertical = uniform(0);
+  private readonly uReactFloor = uniform(-1);
   private audioSource: (() => AudioLevels) | null = null;
   private audioBaseLow = 0;
   private audioBaseMid = 0;
@@ -185,6 +199,10 @@ export class Field {
     const uPointerRadius = this.uPointerRadius;
     const uPointerForce = this.uPointerForce;
     const uAudioLow = this.uAudioLow;
+    const uAudioHigh = this.uAudioHigh;
+    const uReactRadial = this.uReactRadial;
+    const uReactVertical = this.uReactVertical;
+    const uReactFloor = this.uReactFloor;
     const targetPos = this.targetPos;
     const targetCol = this.targetCol;
 
@@ -202,7 +220,13 @@ export class Field {
       const goalRaw = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
       const waveAmp = mix(uWavePrev, uWaveNext, ease);
       const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp.mul(float(1).add(uAudioLow.mul(1.4)))).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
-      const goal = goalRaw.add(vec3(0, wave, 0)).add(jitter);
+      const reactNoise = mx_noise_float(goalRaw.mul(2.4).add(vec3(time.mul(0.35), time.mul(0.2), 0))).mul(0.5).add(0.5);
+      const audioDrive = uAudioLow.mul(0.7).add(uAudioHigh.mul(0.9));
+      const radialDir = normalize(goalRaw.add(vec3(0.0001, 0.0002, 0.0003)));
+      const radial = radialDir.mul(audioDrive.mul(uReactRadial).mul(reactNoise.mul(0.7).add(0.3)));
+      const height = goalRaw.y.sub(uReactFloor).max(0);
+      const vertical = vec3(0, height.mul(audioDrive).mul(uReactVertical).mul(reactNoise.mul(0.8).add(0.2)), 0);
+      const goal = goalRaw.add(vec3(0, wave, 0)).add(radial).add(vertical).add(jitter);
 
       const position = positions.element(i);
       const velocity = velocities.element(i);
@@ -210,7 +234,7 @@ export class Field {
 
       velocity.addAssign(goal.sub(position).mul(uStiffness));
       const turbulence = mx_noise_vec3(position.mul(uNoiseScale).add(vec3(time.mul(0.12), time.mul(0.05), time.mul(0.08))));
-      velocity.addAssign(turbulence.mul(uTurbulence.add(uEnergy.mul(0.085)).add(uAudioLow.mul(0.014))));
+      velocity.addAssign(turbulence.mul(uTurbulence.add(uEnergy.mul(0.085))));
       const away = position.sub(uPointer);
       const dist = length(away);
       const push = smoothstep(uPointerRadius, float(0), dist).mul(uPointerForce);
@@ -277,7 +301,7 @@ export class Field {
     }
     this.targetPos.value.needsUpdate = true;
     this.targetCol.value.needsUpdate = true;
-    this.registered.set(index, { ...DEFAULT_TARGET, ...options });
+    this.registered.set(index, { ...DEFAULT_TARGET, ...options, react: { ...NO_REACTION, ...options.react } });
     if (index === this.current) this.applyTargetUniforms();
   }
 
@@ -419,6 +443,9 @@ export class Field {
     this.sprite.rotation.x += (target.pitch - py * target.tilt * motion - this.sprite.rotation.x) * k;
     this.camera.position.z += (this.targetDistance * this.framing.zoom - this.camera.position.z) * k;
     this.uBrightness.value += (this.baseBrightness * target.bright - this.uBrightness.value) * k;
+    this.uReactRadial.value += (target.react.radial - this.uReactRadial.value) * k;
+    this.uReactVertical.value += (target.react.vertical - this.uReactVertical.value) * k;
+    this.uReactFloor.value += (target.react.floor - this.uReactFloor.value) * k;
 
     if (this.pointerActive && motion) {
       const fovY = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;

@@ -23,12 +23,12 @@ export function measure(samples: Float32Array): { peak: number; rms: number } {
   return { peak, rms: samples.length ? Math.sqrt(sum / samples.length) : 0 };
 }
 
-export function normalizeGain(samples: Float32Array, targetRmsDb: number, peakCeilingDb = -1): number {
+export function normalizeGain(samples: Float32Array, targetRmsDb: number, peakCeilingDb = -1, maxBoostDb = 18): number {
   const { peak, rms } = measure(samples);
   if (rms <= 1e-6 || peak <= 1e-6) return 1;
   const byRms = dbToGain(targetRmsDb) / rms;
   const byPeak = dbToGain(peakCeilingDb) / peak;
-  return Math.min(byRms, byPeak);
+  return Math.min(byRms, byPeak, dbToGain(maxBoostDb));
 }
 
 export function trimSilence(samples: Float32Array, sampleRate: number, thresholdDb = -50, window = 0.02): Trim {

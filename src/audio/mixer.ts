@@ -6,7 +6,7 @@ export interface Clip {
   gain: number;
 }
 
-const TARGET_RMS_DB: Record<Bus | 'cues', number> = { static: -30, texture: -27, bed: -20, cues: -14 };
+const TARGET_RMS_DB: Record<Bus | 'cues', number> = { static: -30, texture: -33, bed: -20, cues: -14 };
 
 export type Bus = 'static' | 'texture' | 'bed';
 

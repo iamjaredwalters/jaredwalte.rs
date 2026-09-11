@@ -89,14 +89,14 @@ async function boot(): Promise<void> {
   must<HTMLElement>('#backend').textContent = `${field.backend === 'webgpu' ? 'WebGPU' : 'WebGL 2'} · ${particleCount.toLocaleString()} particles`;
 
   field.setTarget(SLOT.carrier, PROCEDURAL.carrier(TARGET_POINTS), { scale: 1, wave: 0.16, spin: 0, tilt: 0.25, distance: 3.2 });
-  field.setTarget(SLOT.shell, PROCEDURAL.shell(TARGET_POINTS), { scale: 1, spin: 0.05, distance: 3.4 });
+  field.setTarget(SLOT.shell, PROCEDURAL.shell(TARGET_POINTS), { scale: 1, spin: 0.05, distance: 3.4, react: { radial: 0.2 } });
 
   const proceduralByArtifact: Record<string, [keyof typeof PROCEDURAL, TargetOptions]> = {
-    globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1 }],
-    dome: ['dome', { scale: 0.85, spin: 0.7, tilt: 0.12, pitch: 0.18, distance: 3.0 }],
-    graph: ['graph', { scale: 0.72, spin: 0.8, tilt: 0.15, pitch: 0.2, distance: 3.2 }],
-    ledger: ['ledger', { scale: 0.8, spin: 0.25, tilt: 0.3, pitch: 0.55, distance: 3.1 }],
-    terrain: ['terrain', { scale: 0.75, spin: 0.2, tilt: 0.35, pitch: 0.5, distance: 3.1 }],
+    globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.22 } }],
+    dome: ['dome', { scale: 0.85, spin: 0.7, tilt: 0.12, pitch: 0.18, distance: 3.0, react: { radial: 0.16 } }],
+    graph: ['graph', { scale: 0.72, spin: 0.8, tilt: 0.15, pitch: 0.2, distance: 3.2, react: { radial: 0.3 } }],
+    ledger: ['ledger', { scale: 0.8, spin: 0.25, tilt: 0.3, pitch: 0.55, distance: 3.1, react: { vertical: 0.6, floor: -0.4 } }],
+    terrain: ['terrain', { scale: 0.75, spin: 0.2, tilt: 0.35, pitch: 0.5, distance: 3.1, react: { vertical: 0.45, floor: -0.62 } }],
   };
   STATIONS.forEach((station, index) => {
     const entry = proceduralByArtifact[station.artifact];
@@ -229,8 +229,8 @@ async function boot(): Promise<void> {
         loadCloud(`/clouds/${station.artifact}.bin`).then((cloud) => {
           const options: TargetOptions =
             station.artifact === 'ting'
-              ? { scale: 0.7, spin: 0.35, tilt: 0.12, pitch: 0.05, distance: 3.2 }
-              : { scale: 0.7, spin: 0.4, tilt: 0.12, pitch: 0.05, distance: 3.2 };
+              ? { scale: 0.7, spin: 0.35, tilt: 0.12, pitch: 0.05, distance: 3.2, react: { radial: 0.05 } }
+              : { scale: 0.7, spin: 0.4, tilt: 0.12, pitch: 0.05, distance: 3.2, react: { radial: 0.05 } };
           field.setTarget(STATION_SLOT(index), { positions: cloud.positions, colors: cloud.colors }, options);
           if (active === station.id) tune(station.id, true);
         }),

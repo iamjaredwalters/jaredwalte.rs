@@ -5,9 +5,9 @@ import { Mixer, type Levels } from './mixer';
 type CueName = 'squelch' | 'chirp' | 'roger';
 
 const SILENT: Levels = { low: 0, mid: 0, high: 0, rms: 0 };
-const STATIC_LOCKED = 0.16;
+const STATIC_LOCKED = 0.03;
 const STATIC_OPEN = 0.5;
-const TEXTURE_LEVEL = 0.6;
+const TEXTURE_LEVEL = 0.45;
 
 export class Radio {
   private mixer: Mixer | null = null;
