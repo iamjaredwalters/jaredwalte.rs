@@ -89,7 +89,7 @@
 }
 
 .contact {
-  min-height: 70dvh;
+  min-height: 100dvh;
   display: grid;
   align-content: center;
   gap: 1.4rem;

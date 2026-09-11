@@ -76,12 +76,12 @@ export interface SignoffOptions {
 }
 
 export function signoffTarget(marks: MorseMark[], count: number, options: SignoffOptions = {}): TargetData {
-  const { width = 1.6, morseWidth = 1.3, pulseHeight = 0.085, seed = 13 } = options;
+  const { width = 2.0, morseWidth = 1.72, pulseHeight = 0.13, seed = 13 } = options;
   const rng = mulberry32(seed);
   const positions = new Float32Array(count * 3);
   const colors = new Float32Array(count * 3);
   const weights = new Float32Array(count);
-  const trace: [number, number, number] = [0.4, 0.37, 0.33];
+  const trace: [number, number, number] = [0.3, 0.28, 0.25];
   const pulse: [number, number, number] = [0.36, 0.86, 0.68];
   const gauss = () => {
     const u = 1 - rng();
@@ -89,11 +89,11 @@ export function signoffTarget(marks: MorseMark[], count: number, options: Signof
     return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   };
 
-  const lineCount = Math.floor(count * 0.55);
+  const lineCount = Math.floor(count * 0.35);
   for (let p = 0; p < lineCount; p++) {
     positions[p * 3] = (rng() - 0.5) * width;
-    positions[p * 3 + 1] = gauss() * 0.004;
-    positions[p * 3 + 2] = gauss() * 0.004;
+    positions[p * 3 + 1] = gauss() * 0.003;
+    positions[p * 3 + 2] = gauss() * 0.003;
     colors[p * 3] = trace[0];
     colors[p * 3 + 1] = trace[1];
     colors[p * 3 + 2] = trace[2];
@@ -126,9 +126,9 @@ export function signoffTarget(marks: MorseMark[], count: number, options: Signof
       x = x1;
       y = pulseHeight - (pick - pulseHeight - mark.length * unit);
     }
-    positions[p * 3] = x + gauss() * 0.003;
-    positions[p * 3 + 1] = y + gauss() * 0.003;
-    positions[p * 3 + 2] = gauss() * 0.004;
+    positions[p * 3] = x + gauss() * 0.002;
+    positions[p * 3 + 1] = y + gauss() * 0.002;
+    positions[p * 3 + 2] = gauss() * 0.003;
     colors[p * 3] = pulse[0];
     colors[p * 3 + 1] = pulse[1];
     colors[p * 3 + 2] = pulse[2];

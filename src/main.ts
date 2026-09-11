@@ -98,7 +98,7 @@ async function boot(): Promise<void> {
       station: null,
       tint: 'verdigris',
       readout: SIGN_OFF,
-      framing: () => (wide.matches ? { offsetX: 0.92, offsetY: 0.05, zoom: 1 } : { offsetX: 0, offsetY: -0.5, zoom: 1.6 }),
+      framing: () => (wide.matches ? { offsetX: 0.85, offsetY: -0.2, zoom: 1 } : { offsetX: 0, offsetY: -0.5, zoom: 1.6 }),
       top: 0,
     },
   ];
@@ -146,7 +146,7 @@ async function boot(): Promise<void> {
 
   field.setTarget(SLOT.carrier, PROCEDURAL.carrier(TARGET_POINTS), { scale: 1, wave: 0.16, spin: 0, tilt: 0.25, distance: 3.2 });
   field.setTarget(SLOT.shell, PROCEDURAL.shell(TARGET_POINTS), { scale: 1, spin: 0.05, distance: 3.4, react: { radial: 0.2 } });
-  field.setTarget(SLOT.signoff, signoffTarget(morseMarks('73 DE JW'), TARGET_POINTS), { scale: 1, spin: 0, tilt: 0.03, pitch: 0, distance: 3.1, bright: 0.7, react: { z: 0.06 } });
+  field.setTarget(SLOT.signoff, signoffTarget(morseMarks('73 DE JW'), TARGET_POINTS), { scale: 1, spin: 0, tilt: 0.02, pitch: 0, distance: 3.1, bright: 0.7, jitter: 0.004, turbulence: 0.0006, react: { z: 0.05 } });
 
   const proceduralByArtifact: Record<string, [keyof typeof PROCEDURAL, TargetOptions]> = {
     globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.11 } }],
@@ -170,11 +170,11 @@ async function boot(): Promise<void> {
 
   function measure(): void {
     const paddingTop = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
     for (const zone of zones) {
-      zone.top = Math.max(0, zone.element.getBoundingClientRect().top + window.scrollY - paddingTop);
+      zone.top = Math.min(total, Math.max(0, zone.element.getBoundingClientRect().top + window.scrollY - paddingTop));
     }
     zones[0].top = 0;
-    const total = document.documentElement.scrollHeight - window.innerHeight;
     tuner.markStations(
       STATIONS.map((station) => {
         const zone = zoneById.get(station.id);

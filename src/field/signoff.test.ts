@@ -38,6 +38,6 @@ describe('signoffTarget', () => {
         expect(Math.abs(y)).toBeLessThan(0.03);
       }
     }
-    expect(hot).toBe(900);
+    expect(hot).toBe(1300);
   });
 });

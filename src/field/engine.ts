@@ -55,6 +55,8 @@ export interface TargetOptions {
   pitch?: number;
   distance?: number;
   bright?: number;
+  jitter?: number;
+  turbulence?: number;
   react?: Partial<Reaction>;
 }
 
@@ -72,12 +74,14 @@ interface RegisteredTarget {
   pitch: number;
   distance: number;
   bright: number;
+  jitter: number;
+  turbulence: number;
   react: Reaction;
 }
 
 const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1, z: 0 };
 const DEFAULT_POINT_WEIGHT = 0.5;
-const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, react: NO_REACTION };
+const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, jitter: 0.014, turbulence: 0.0022, react: NO_REACTION };
 
 export class Field {
   readonly backend: 'webgpu' | 'webgl';
@@ -394,15 +398,13 @@ export class Field {
     this.baseBrightness = value;
   }
 
-  debugSet(params: Partial<Record<'size' | 'brightness' | 'alpha' | 'bloom' | 'jitter' | 'stiffness' | 'damping' | 'turbulence' | 'exposure', number>>): void {
+  debugSet(params: Partial<Record<'size' | 'brightness' | 'alpha' | 'bloom' | 'stiffness' | 'damping' | 'exposure', number>>): void {
     if (params.size !== undefined) this.uSize.value = params.size;
     if (params.brightness !== undefined) this.baseBrightness = params.brightness;
     if (params.alpha !== undefined) this.uAlpha.value = params.alpha;
     if (params.bloom !== undefined) this.uBloom.value = params.bloom;
-    if (params.jitter !== undefined) this.uJitter.value = params.jitter;
     if (params.stiffness !== undefined) this.uStiffness.value = params.stiffness;
     if (params.damping !== undefined) this.uDamping.value = params.damping;
-    if (params.turbulence !== undefined) this.uTurbulence.value = params.turbulence;
     if (params.exposure !== undefined) this.renderer.toneMappingExposure = params.exposure;
   }
 
@@ -479,6 +481,8 @@ export class Field {
       pitch: m(from.pitch, to.pitch),
       distance: m(from.distance, to.distance),
       bright: m(from.bright, to.bright) * (0.45 + 0.55 * this.signal),
+      jitter: m(from.jitter, to.jitter),
+      turbulence: m(from.turbulence, to.turbulence),
       react: {
         radial: m(from.react.radial, to.react.radial),
         vertical: m(from.react.vertical, to.react.vertical),
@@ -504,6 +508,8 @@ export class Field {
     this.uReactVertical.value += (target.react.vertical - this.uReactVertical.value) * k;
     this.uReactFloor.value += (target.react.floor - this.uReactFloor.value) * k;
     this.uReactZ.value += (target.react.z - this.uReactZ.value) * k;
+    this.uJitter.value += (target.jitter - this.uJitter.value) * k;
+    this.uTurbulence.value += (target.turbulence - this.uTurbulence.value) * k;
 
     if (this.pointerActive && motion) {
       const fovY = Math.tan((this.camera.fov * Math.PI) / 360) * this.camera.position.z;
