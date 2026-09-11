@@ -131,7 +131,7 @@ export class Dossier {
     const ids = this.stations.map((s) => s.id);
     this.els.freq.textContent = station.frequency;
     this.els.band.textContent = station.band;
-    this.els.callsign.textContent = station.callsign;
+    this.els.callsign.textContent = `${station.callsign} · ${station.frequencyNote}`;
     this.els.title.replaceChildren(stationName(station.name));
     this.els.pitch.textContent = station.pitch;
     this.els.brief.textContent = station.brief;

@@ -2,6 +2,27 @@
 
 Personal portfolio. The site is a receiver: one WebGPU compute-particle field fills the viewport and scrolling tunes through seven stations (projects). The field morphs from a carrier wave into each project's artifact, a dossier opens with a View Transition, and an optional radio layer plays squelch and chirps between stations.
 
+## Stations and frequencies
+
+Every station sits on a real allocation that matches the project (`frequencyNote` in `src/data/stations.ts`, shown in the dossier header):
+
+| Station | Callsign | MHz | What lives there |
+| --- | --- | --- | --- |
+| Seevie | PULSE | 2400.000 | The 2.4 GHz Wi-Fi band the stick talks over |
+| Ting Radio | OVERWATCH | 296.800 | Apollo's VHF voice downlink, the channel CAPCOM used |
+| Thereabouts | FIX | 1575.420 | GPS L1, the carrier a phone fixes position from |
+| Vela | ZENITH | 1420.405 | The hydrogen line, radio astronomy's signature frequency |
+| add2cal | TIMECHECK | 10.000 | WWV, the NIST time-signal station |
+| Aleph | LEDGER | 162.400 | NOAA Weather Radio, a continuous report of conditions |
+| Flea | LEVER | 27.145 | The 27 MHz band used by radio-controlled cars |
+| About | JARED | 146.520 | The 2-meter amateur calling frequency |
+
+The carrier (hero) and the sign-off sit at 000.000: nothing tuned.
+
+## Sign-off
+
+The contact section spells `73 DE JW` in Morse on a dead carrier trace (`src/field/signoff.ts`). `73` is the amateur-radio sign-off for "best regards" (from the 1859 Western Union numeric code, where 88 is "love and kisses"); `DE` is the procedural word for "from" that separates stations in a contact; `JW` stands in for a callsign. Timing is standard: dot 1 unit, dash 3, 1 between elements, 3 between letters, 7 between words, so the trace reads `--... ...--  -.. .  .--- .--`. The pulses are the only reactive nodes and breathe with the music.
+
 ## Run
 
 ```

@@ -35,6 +35,7 @@ export interface Station {
   name: string;
   frequency: string;
   band: string;
+  frequencyNote: string;
   tint: TintName;
   artifact: ArtifactKind;
   pitch: string;
@@ -52,6 +53,7 @@ export const STATIONS: Station[] = [
     name: 'Seevie',
     frequency: '2400.000',
     band: 'MHz',
+    frequencyNote: "the 2.4 GHz Wi-Fi band the stick talks over",
     tint: 'verdigris',
     artifact: 'stick',
     pitch: 'Your agent, on a thumb drive.',
@@ -72,6 +74,7 @@ export const STATIONS: Station[] = [
     name: 'Ting Radio',
     frequency: '296.800',
     band: 'MHz',
+    frequencyNote: "Apollo's VHF voice downlink, the channel CAPCOM used",
     tint: 'rose',
     artifact: 'ting',
     pitch: 'A walkie-talkie for Claude Code.',
@@ -92,6 +95,7 @@ export const STATIONS: Station[] = [
     name: 'Thereabouts',
     frequency: '1575.420',
     band: 'MHz',
+    frequencyNote: "GPS L1, the carrier a phone fixes position from",
     tint: 'lilac',
     artifact: 'globe',
     pitch: 'Every song you saved, and where you were.',
@@ -112,6 +116,7 @@ export const STATIONS: Station[] = [
     name: 'Vela',
     frequency: '1420.405',
     band: 'MHz',
+    frequencyNote: "the hydrogen line, radio astronomy's signature frequency",
     tint: 'ivory',
     artifact: 'dome',
     pitch: 'Your personal constellation.',
@@ -132,6 +137,7 @@ export const STATIONS: Station[] = [
     name: 'add2cal',
     frequency: '10.000',
     band: 'MHz',
+    frequencyNote: "WWV, the NIST time-signal station",
     tint: 'verdigris',
     artifact: 'calendar',
     pitch: 'Photo of a flyer in, calendar event out.',
@@ -152,6 +158,7 @@ export const STATIONS: Station[] = [
     name: 'Aleph',
     frequency: '162.400',
     band: 'MHz',
+    frequencyNote: "NOAA Weather Radio, a continuous report of conditions",
     tint: 'rose',
     artifact: 'ledger',
     pitch: 'What did I work on, and when?',
@@ -172,6 +179,7 @@ export const STATIONS: Station[] = [
     name: 'Flea',
     frequency: '27.145',
     band: 'MHz',
+    frequencyNote: "the 27 MHz band used by radio-controlled cars",
     tint: 'lilac',
     artifact: 'terrain',
     pitch: 'A robot with a spring-loaded leg, and a world to cross.',
