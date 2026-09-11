@@ -3,7 +3,7 @@ import { ALSO_ON_AIR, STATIONS, applyTint, type Station, type TintName } from '@
 import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
-import { morseMarks, renderAddress, signoffTarget } from '@/field/signoff';
+import { morseMarks, signoffTarget } from '@/field/signoff';
 import { PROCEDURAL } from '@/field/targets';
 import { dialState, lerp, nextLock } from '@/ui/dial';
 import { Dossier } from '@/ui/dossier';
@@ -98,7 +98,7 @@ async function boot(): Promise<void> {
       station: null,
       tint: 'verdigris',
       readout: SIGN_OFF,
-      framing: () => (wide.matches ? { offsetX: 0.15, offsetY: -0.42, zoom: 1 } : { offsetX: 0, offsetY: -0.45, zoom: 1.9 }),
+      framing: () => (wide.matches ? { offsetX: 0.92, offsetY: 0.05, zoom: 1 } : { offsetX: 0, offsetY: -0.5, zoom: 1.6 }),
       top: 0,
     },
   ];
@@ -146,6 +146,7 @@ async function boot(): Promise<void> {
 
   field.setTarget(SLOT.carrier, PROCEDURAL.carrier(TARGET_POINTS), { scale: 1, wave: 0.16, spin: 0, tilt: 0.25, distance: 3.2 });
   field.setTarget(SLOT.shell, PROCEDURAL.shell(TARGET_POINTS), { scale: 1, spin: 0.05, distance: 3.4, react: { radial: 0.2 } });
+  field.setTarget(SLOT.signoff, signoffTarget(morseMarks('73 DE JW'), TARGET_POINTS), { scale: 1, spin: 0, tilt: 0.03, pitch: 0, distance: 3.1, bright: 0.7, react: { z: 0.06 } });
 
   const proceduralByArtifact: Record<string, [keyof typeof PROCEDURAL, TargetOptions]> = {
     globe: ['globe', { scale: 0.8, spin: 0.9, tilt: 0.08, pitch: 0.12, distance: 3.1, react: { radial: 0.11 } }],
@@ -318,12 +319,6 @@ async function boot(): Promise<void> {
       );
     }
   });
-  loads.push(
-    renderAddress('me@jaredwalte.rs').then((address) => {
-      field.setTarget(SLOT.signoff, signoffTarget(address, morseMarks('73'), TARGET_POINTS), { scale: 0.8, spin: 0, tilt: 0.04, pitch: 0, distance: 3.1, bright: 0.5, react: { z: 0.1 } });
-      updateDial();
-    }),
-  );
   loads.push(
     portraitFromImage('/jared-jetski.webp', TARGET_POINTS, { floor: 0.05, gamma: 2.0 }).then((data) => {
       field.setTarget(SLOT.portrait, data, { scale: 0.8, spin: 0.14, tilt: 0.12, pitch: 0.02, distance: 2.9, bright: 0.55 });

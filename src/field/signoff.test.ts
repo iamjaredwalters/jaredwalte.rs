@@ -1,17 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Luminance } from './portrait';
 import { morseExtent, morseMarks, signoffTarget } from './signoff';
-
-function fakeAddress(width: number, height: number): Luminance {
-  const values = new Float32Array(width * height);
-  const alpha = new Float32Array(width * height).fill(1);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      values[y * width + x] = x < width / 2 ? 1 : 0;
-    }
-  }
-  return { width, height, values, alpha };
-}
 
 describe('morse', () => {
   it('spells 73 with standard timing', () => {
@@ -22,26 +10,34 @@ describe('morse', () => {
     expect(marks[5].start - (marks[4].start + marks[4].length)).toBe(3);
   });
 
+  it('encodes letters and separates words by seven units', () => {
+    const marks = morseMarks('73 DE JW');
+    expect(marks).toHaveLength(21);
+    const endOf3 = marks[9].start + marks[9].length;
+    expect(marks[10].start - endOf3).toBe(7);
+  });
+
   it('skips characters it cannot encode', () => {
-    expect(morseMarks('7x3')).toHaveLength(10);
+    expect(morseMarks('7?3')).toHaveLength(10);
     expect(morseExtent(morseMarks(''))).toBe(0);
   });
 });
 
 describe('signoffTarget', () => {
-  it('places text points only on lit pixels and marks as hot nodes', () => {
-    const data = signoffTarget(fakeAddress(64, 10), morseMarks('73'), 1000);
+  it('draws a flat trace with the marks as raised pulses', () => {
+    const data = signoffTarget(morseMarks('73 DE JW'), 2000, { pulseHeight: 0.1 });
     expect(data.weights).toBeDefined();
     let hot = 0;
-    for (let i = 0; i < 1000; i++) {
-      const x = data.positions[i * 3];
+    for (let i = 0; i < 2000; i++) {
+      const y = data.positions[i * 3 + 1];
       if (data.weights![i] === 1) {
         hot++;
-        expect(Math.abs(x)).toBeLessThanOrEqual(0.56);
+        expect(y).toBeGreaterThan(-0.02);
+        expect(y).toBeLessThan(0.12);
       } else {
-        expect(x).toBeLessThanOrEqual(0);
+        expect(Math.abs(y)).toBeLessThan(0.03);
       }
     }
-    expect(hot).toBe(200);
+    expect(hot).toBe(900);
   });
 });

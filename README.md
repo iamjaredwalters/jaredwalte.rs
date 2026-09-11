@@ -18,7 +18,7 @@ pnpm preview
 
 - `src/field/engine.ts` — three r185 `WebGPURenderer` + TSL. Storage buffers for position/velocity/color, a `targetCount × targetPoints` storage buffer of morph targets, one compute pass per frame (spring to target, noise turbulence, pointer repulsion), additive sprites, bloom + grain post pass via `RenderPipeline`.
 - `src/field/targets.ts` — procedural point-cloud generators (carrier wave, globe, constellation dome, hub graph, bar ledger, terrain). Pure, seeded, unit-tested.
-- `src/field/signoff.ts` — renders the email address with the site's display face on a canvas and samples it into points, with `73` in Morse above it as the hot nodes.
+- `src/field/signoff.ts` — the sign-off: a dead carrier trace with `73 DE JW` riding on it as Morse pulses (the hot nodes).
 - `src/field/portrait.ts` — samples `public/jared-jetski.webp` (alpha-masked cutout) by luminance into a point relief. `scripts/cutout.swift` lifts a subject off its background with macOS Vision: `swift scripts/cutout.swift in.jpg out.png`.
 - `src/field/cloud.ts` — decoder for `public/clouds/*.bin` (header + int16 xyz + rgb8, v2 adds a hot-weight byte).
 - `src/data/stations.ts` — the seven stations: copy, frequency, callsign, tint, artifact. Palette: bakelite `#131110`, ivory text, and three tints (verdigris, dusty rose, lilac) as registered `--hue/--accent-l/--accent-c` properties that tween between stations.

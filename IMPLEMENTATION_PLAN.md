@@ -65,8 +65,8 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Status**: Complete (2026-09-10)
 
 ## Stage 10: Continuous tuning and sign-off
-**Goal**: scroll position is the dial. `src/ui/dial.ts` maps scrollY to (from, to, t, signal) with a lock plateau around each station; the field blends by t and dissolves into static as signal drops; beds and static follow signal; roger/squelch fire on lock/unlock with hysteresis; the dial strip is draggable and arrow keys step channels. Contact is the sign-off: the field spells the email address (type rendered to canvas and sampled) with `73` in Morse above it as hot nodes, while audio fades to silence. A Blender handset was tried first and read as a fuzzy sausage; smooth volumes don't survive particle rendering.
-**Success Criteria**: mid-scroll shows a half-formed artifact in static with the readout jittering between frequencies; resting on a station locks cleanly; drag and keys move the page; contact ends on the address with the Morse marks as the only reactive nodes.
+**Goal**: scroll position is the dial. `src/ui/dial.ts` maps scrollY to (from, to, t, signal) with a lock plateau around each station; the field blends by t and dissolves into static as signal drops; beds and static follow signal; roger/squelch fire on lock/unlock with hysteresis; the dial strip is draggable and arrow keys step channels. Contact is the sign-off: a dead carrier trace with `73 DE JW` in Morse as raised pulses (the hot nodes), while audio fades to silence. Tried and rejected on the way: a rotary phone (giant), a flat handset (goggles), a Blender handset (fuzzy), the email address in type (too loud).
+**Success Criteria**: mid-scroll shows a half-formed artifact in static with the readout jittering between frequencies; resting on a station locks cleanly; drag and keys move the page; contact ends on a flat trace with the Morse pulses as the only reactive nodes.
 **Tests**: dial state math and lock hysteresis (vitest).
 **Status**: Complete (2026-09-10)
 
