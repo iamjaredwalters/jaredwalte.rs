@@ -4,9 +4,10 @@ import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
 import { PROCEDURAL } from '@/field/targets';
+import { dialState, lerp, nextLock } from '@/ui/dial';
 import { Dossier } from '@/ui/dossier';
 import { renderAlso, renderStations } from '@/ui/render';
-import { Tuner } from '@/ui/tuner';
+import { Tuner, type TunerStation } from '@/ui/tuner';
 
 const TARGET_POINTS = 65536;
 const SLOT = { carrier: 0, portrait: 8, shell: 9 } as const;
@@ -17,15 +18,29 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wide = matchMedia('(min-width: 56rem)');
 const coarse = matchMedia('(pointer: coarse)').matches;
 
+interface Zone {
+  id: string;
+  element: HTMLElement;
+  slot: number;
+  station: Station | null;
+  tint: TintName;
+  readout: TunerStation;
+  framing: () => Framing;
+  top: number;
+}
+
 function must<T extends Element>(selector: string): T {
   const node = document.querySelector<T>(selector);
   if (!node) throw new Error(`missing ${selector}`);
   return node;
 }
 
-const zones = new Map<string, { slot: number; station: Station | null; framing: () => Framing }>();
+const CARRIER: TunerStation = { frequency: '000.000', band: 'MHz', callsign: 'CARRIER' };
+const PORTRAIT: TunerStation = { frequency: '146.520', band: 'MHz', callsign: 'JARED' };
+const STANDBY: TunerStation = { frequency: '000.000', band: 'MHz', callsign: 'STANDBY' };
+const SIGN_OFF: TunerStation = { frequency: '000.000', band: 'MHz', callsign: 'SIGN-OFF' };
 
-function stationFraming() {
+function stationFraming(): Framing {
   return wide.matches ? { offsetX: 0.95, offsetY: -0.05, zoom: 1 } : { offsetX: 0, offsetY: 0.32, zoom: 1.25 };
 }
 
@@ -34,20 +49,59 @@ async function boot(): Promise<void> {
   renderStations(stationsRoot, STATIONS);
   renderAlso(must<HTMLElement>('#also-list'), ALSO_ON_AIR);
 
-  const hero = must<HTMLElement>('#top');
-  const about = must<HTMLElement>('#about');
-  const also = must<HTMLElement>('#also');
-  const contact = must<HTMLElement>('#contact');
-  hero.dataset.zone = 'carrier';
-  about.dataset.zone = 'portrait';
-  also.dataset.zone = 'shell';
-  contact.dataset.zone = 'contact';
-
-  zones.set('carrier', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: wide.matches ? 0.42 : 0.7, zoom: 1 }) });
-  zones.set('portrait', { slot: SLOT.portrait, station: null, framing: () => (wide.matches ? { offsetX: -0.85, offsetY: -0.16, zoom: 1 } : { offsetX: 0, offsetY: 0.5, zoom: 1.3 }) });
-  zones.set('shell', { slot: SLOT.shell, station: null, framing: () => ({ offsetX: 0, offsetY: 0, zoom: 1 }) });
-  zones.set('contact', { slot: SLOT.carrier, station: null, framing: () => ({ offsetX: 0, offsetY: -0.2, zoom: 1 }) });
-  STATIONS.forEach((station, index) => zones.set(station.id, { slot: STATION_SLOT(index), station, framing: stationFraming }));
+  const zones: Zone[] = [
+    {
+      id: 'carrier',
+      element: must('#top'),
+      slot: SLOT.carrier,
+      station: null,
+      tint: 'verdigris',
+      readout: CARRIER,
+      framing: () => ({ offsetX: 0, offsetY: wide.matches ? 0.42 : 0.7, zoom: 1 }),
+      top: 0,
+    },
+    ...STATIONS.map((station, index) => ({
+      id: station.id,
+      element: must<HTMLElement>(`#station-${station.id}`),
+      slot: STATION_SLOT(index),
+      station,
+      tint: station.tint,
+      readout: station,
+      framing: stationFraming,
+      top: 0,
+    })),
+    {
+      id: 'shell',
+      element: must('#also'),
+      slot: SLOT.shell,
+      station: null,
+      tint: 'ivory',
+      readout: STANDBY,
+      framing: () => ({ offsetX: 0, offsetY: 0, zoom: 1 }),
+      top: 0,
+    },
+    {
+      id: 'portrait',
+      element: must('#about'),
+      slot: SLOT.portrait,
+      station: null,
+      tint: 'rose',
+      readout: PORTRAIT,
+      framing: () => (wide.matches ? { offsetX: -0.85, offsetY: -0.16, zoom: 1 } : { offsetX: 0, offsetY: 0.5, zoom: 1.3 }),
+      top: 0,
+    },
+    {
+      id: 'contact',
+      element: must('#contact'),
+      slot: SLOT.portrait,
+      station: null,
+      tint: 'verdigris',
+      readout: SIGN_OFF,
+      framing: () => ({ offsetX: 0, offsetY: 0.45, zoom: 1 }),
+      top: 0,
+    },
+  ];
+  const zoneById = new Map(zones.map((zone) => [zone.id, zone]));
 
   const tuner = new Tuner(
     {
@@ -56,6 +110,7 @@ async function boot(): Promise<void> {
       band: must('#band'),
       callsign: must('#callsign'),
       ticks: must('#ticks'),
+      dial: must('.tuner__dial'),
       status: must('#status'),
       masthead: must('.masthead'),
     },
@@ -103,60 +158,87 @@ async function boot(): Promise<void> {
     if (entry) field.setTarget(STATION_SLOT(index), PROCEDURAL[entry[0]](TARGET_POINTS, index + 3), entry[1]);
   });
 
-  let active = 'carrier';
-  const carrierStation = { frequency: '000.000', band: 'MHz', callsign: 'CARRIER' };
-  const portraitStation = { frequency: '146.520', band: 'MHz', callsign: 'JARED' };
-  const shellStation = { frequency: '000.000', band: 'MHz', callsign: 'STANDBY' };
+  let activeTint: TintName | null = null;
+  let locked = true;
+  let lockedZone = 'carrier';
+  let frozen = false;
+  let currentZone = 'carrier';
+  let lastFrom = 0;
+  let lastTo = 0;
 
-  function tune(zoneId: string, immediate = false): void {
-    const zone = zones.get(zoneId);
-    if (!zone) return;
-    const changed = zoneId !== active;
-    active = zoneId;
-    const station = zone.station;
-    const zoneTint: TintName = station?.tint ?? (zoneId === 'portrait' ? 'rose' : zoneId === 'shell' ? 'ivory' : 'verdigris');
-    applyTint(document.documentElement, zoneTint);
-    field.setFraming(zone.framing());
-    if (field.hasTarget(zone.slot)) field.tuneTo(zone.slot, immediate);
-    const readout = station ?? (zoneId === 'portrait' ? portraitStation : zoneId === 'carrier' || zoneId === 'contact' ? carrierStation : shellStation);
-    tuner.show(readout, true);
-    if (changed || immediate) void radio.tune(zoneId, immediate);
+  function measure(): void {
+    const paddingTop = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    for (const zone of zones) {
+      zone.top = Math.max(0, zone.element.getBoundingClientRect().top + window.scrollY - paddingTop);
+    }
+    zones[0].top = 0;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    tuner.markStations(
+      STATIONS.map((station) => {
+        const zone = zoneById.get(station.id);
+        return zone && total > 0 ? Math.min(1, Math.max(0, zone.top / total)) : 0;
+      }),
+    );
   }
 
-  const zoneElements = Array.from(document.querySelectorAll<HTMLElement>('[data-zone]'));
+  function updateDial(): void {
+    if (frozen) return;
+    const state = dialState(window.scrollY, zones.map((zone) => zone.top), window.innerHeight);
+    const from = zones[state.from];
+    const to = zones[state.to];
+    const nearest = zones[state.nearest];
+    lastFrom = state.from;
+    lastTo = state.to;
+    field.setDial(from.slot, to.slot, state.t, state.signal, SLOT.shell);
+    const a = from.framing();
+    const b = to.framing();
+    field.setFraming({ offsetX: lerp(a.offsetX, b.offsetX, state.t), offsetY: lerp(a.offsetY, b.offsetY, state.t), zoom: lerp(a.zoom, b.zoom, state.t) });
+    field.setCollapse(to.id === 'contact' ? state.t : from.id === 'contact' ? 1 : 0);
+    if (nearest.tint !== activeTint) {
+      activeTint = nearest.tint;
+      applyTint(document.documentElement, nearest.tint);
+    }
+    const stationIndex = nearest.station ? STATIONS.indexOf(nearest.station) : -1;
+    tuner.dial({ from: from.readout, to: to.readout, t: state.t, signal: state.signal, nearest: nearest.readout }, Math.max(0, stationIndex), STATIONS.length);
+    currentZone = nearest.id;
+    radio.setSignal(nearest.id, state.signal);
+    const wasLocked = locked;
+    locked = nextLock(locked, state.signal);
+    if (locked && !wasLocked) {
+      lockedZone = nearest.id;
+      radio.lock(nearest.id);
+    } else if (!locked && wasLocked) {
+      radio.unlock();
+    } else if (locked && lockedZone !== nearest.id) {
+      lockedZone = nearest.id;
+    }
+  }
+
   let ticking = false;
   function onScroll(): void {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(() => {
       ticking = false;
-      const focusY = window.innerHeight * 0.55;
-      let best: HTMLElement | null = null;
-      let bestDistance = Infinity;
-      for (const element of zoneElements) {
-        const rect = element.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
-        const center = rect.top + rect.height / 2;
-        const distance = Math.abs(center - focusY) - Math.min(rect.height, window.innerHeight) * 0.25;
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = element;
-        }
-      }
-      const zoneId = best?.dataset.zone;
-      if (zoneId && zoneId !== active && !dossier.current) tune(zoneId);
+      updateDial();
     });
   }
 
-  function markTicks(): void {
-    const total = document.documentElement.scrollHeight - window.innerHeight;
-    const fractions = STATIONS.map((station) => {
-      const element = document.getElementById(`station-${station.id}`);
-      if (!element || total <= 0) return 0;
-      return Math.min(1, Math.max(0, (element.offsetTop - window.innerHeight * 0.1) / total));
-    });
-    tuner.markStations(fractions);
+  function stepStation(direction: 1 | -1): void {
+    const current = zoneById.get(currentZone);
+    const index = current ? zones.indexOf(current) : 0;
+    const targetIndex = locked ? index + direction : direction > 0 ? lastTo : lastFrom;
+    const next = zones[Math.min(zones.length - 1, Math.max(0, targetIndex))];
+    window.scrollTo({ top: next.top, behavior: reducedMotion ? 'instant' : 'smooth' });
   }
+
+  tuner.attachControls({
+    onDrag(deltaFraction) {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({ top: window.scrollY - deltaFraction * total, behavior: 'instant' });
+    },
+    onStep: stepStation,
+  });
 
   const dossier = new Dossier(
     {
@@ -178,22 +260,23 @@ async function boot(): Promise<void> {
     STATIONS,
     {
       onOpen(station) {
-        const zone = zones.get(station.id);
+        const zone = zoneById.get(station.id);
         if (!zone) return;
-        active = station.id;
+        frozen = true;
         applyTint(document.documentElement, station.tint);
         field.setFraming(wide.matches ? { offsetX: 1.1, offsetY: 0, zoom: 1 } : { offsetX: 0, offsetY: 0.85, zoom: 1.35 });
         field.tuneTo(zone.slot);
+        field.setCollapse(0);
         field.pulse(0.6);
-        tuner.show(station, true);
+        radio.setSignal(station.id, 1);
         radio.duck(true);
         radio.chirp();
       },
       onClose() {
+        frozen = false;
         radio.duck(false);
         radio.squelch();
-        const zone = zones.get(active);
-        if (zone) field.setFraming(zone.framing());
+        updateDial();
       },
     },
   );
@@ -206,9 +289,8 @@ async function boot(): Promise<void> {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {
     field.resize();
-    markTicks();
-    const zone = zones.get(active);
-    if (zone) field.setFraming(zone.framing());
+    measure();
+    updateDial();
   });
   if (!coarse) {
     window.addEventListener('pointermove', (event) => field.setPointer(event.clientX, event.clientY), { passive: true });
@@ -218,9 +300,8 @@ async function boot(): Promise<void> {
 
   field.setAudioSource(() => radio.levels());
   await field.init();
-  markTicks();
-  tune('carrier', true);
-  onScroll();
+  measure();
+  updateDial();
   dossier.syncFromHash();
 
   const loads: Promise<void>[] = [];
@@ -233,7 +314,7 @@ async function boot(): Promise<void> {
               ? { scale: 0.7, spin: 0.35, tilt: 0.12, pitch: 0.05, distance: 3.2, bright: 0.75, react: { radial: 0.05 } }
               : { scale: 0.7, spin: 0.4, tilt: 0.12, pitch: 0.05, distance: 3.2, bright: 0.75, react: { radial: 0.05 } };
           field.setTarget(STATION_SLOT(index), { positions: cloud.positions, colors: cloud.colors }, options);
-          if (active === station.id) tune(station.id, true);
+          updateDial();
         }),
       );
     }
@@ -241,11 +322,14 @@ async function boot(): Promise<void> {
   loads.push(
     portraitFromImage('/jared-jetski.webp', TARGET_POINTS, { floor: 0.05, gamma: 2.0 }).then((data) => {
       field.setTarget(SLOT.portrait, data, { scale: 0.8, spin: 0.14, tilt: 0.12, pitch: 0.02, distance: 2.9, bright: 0.55 });
-      if (active === 'portrait') tune('portrait', true);
+      updateDial();
     }),
   );
   await Promise.allSettled(loads);
-  requestAnimationFrame(markTicks);
+  requestAnimationFrame(() => {
+    measure();
+    updateDial();
+  });
 }
 
 boot().catch((error: unknown) => {

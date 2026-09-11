@@ -77,6 +77,11 @@ interface RegisteredTarget {
 const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1 };
 const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, react: NO_REACTION };
 
+function smoothstepJs(edge0: number, edge1: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
 export class Field {
   readonly backend: 'webgpu' | 'webgl';
   private readonly renderer: THREE.WebGPURenderer;
@@ -118,6 +123,7 @@ export class Field {
   private readonly uReactRadial = uniform(0);
   private readonly uReactVertical = uniform(0);
   private readonly uReactFloor = uniform(-1);
+  private readonly uCollapse = uniform(0);
   private audioSource: (() => AudioLevels) | null = null;
   private audioBaseLow = 0;
   private audioBaseMid = 0;
@@ -126,6 +132,10 @@ export class Field {
   private blending = false;
   private blendStart = 0;
   private blendDuration = 1.8;
+  private dialTo = 0;
+  private dialT = 0;
+  private signal = 1;
+  private collapse = 0;
   private framing: Framing = { offsetX: 0, offsetY: 0, zoom: 1 };
   private targetDistance = DEFAULT_TARGET.distance;
   private spinAngle = 0;
@@ -203,6 +213,7 @@ export class Field {
     const uReactRadial = this.uReactRadial;
     const uReactVertical = this.uReactVertical;
     const uReactFloor = this.uReactFloor;
+    const uCollapse = this.uCollapse;
     const targetPos = this.targetPos;
     const targetCol = this.targetCol;
 
@@ -217,7 +228,10 @@ export class Field {
       const cB = targetCol.element(offsetNext).xyz;
       const ease = smoothstep(0, 1, uBlend);
       const jitter = vec3(hash(i.add(uint(11))), hash(i.add(uint(23))), hash(i.add(uint(37)))).sub(0.5).mul(uJitter);
-      const goalRaw = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
+      const spread = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
+      const squeezeY = float(1).sub(smoothstep(0.0, 0.55, uCollapse));
+      const squeezeX = float(1).sub(smoothstep(0.5, 1.0, uCollapse));
+      const goalRaw = vec3(spread.x.mul(squeezeX), spread.y.mul(squeezeY), spread.z.mul(squeezeX));
       const waveAmp = mix(uWavePrev, uWaveNext, ease);
       const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp.mul(float(1).add(uAudioLow.mul(1.4)))).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
       const reactNoise = mx_noise_float(goalRaw.mul(2.4).add(vec3(time.mul(0.35), time.mul(0.2), 0))).mul(0.5).add(0.5);
@@ -318,6 +332,9 @@ export class Field {
     this.uScalePrev.value = this.registered.get(from)?.scale ?? 1;
     this.uWavePrev.value = this.registered.get(from)?.wave ?? 0;
     this.current = index;
+    this.dialTo = index;
+    this.dialT = 1;
+    this.signal = 1;
     this.applyTargetUniforms();
     if (immediate || this.config.reducedMotion) {
       this.uBlend.value = 1;
@@ -327,6 +344,28 @@ export class Field {
     this.blending = true;
     this.blendStart = performance.now();
     this.uBlend.value = 0;
+  }
+
+  setDial(from: number, to: number, t: number, signal: number, fallback: number): void {
+    const a = this.registered.has(from) ? from : fallback;
+    const b = this.registered.has(to) ? to : fallback;
+    if (!this.registered.has(a) || !this.registered.has(b)) return;
+    this.blending = false;
+    this.uPrev.value = a;
+    this.uNext.value = b;
+    this.uScalePrev.value = this.registered.get(a)?.scale ?? 1;
+    this.uWavePrev.value = this.registered.get(a)?.wave ?? 0;
+    this.uScaleNext.value = this.registered.get(b)?.scale ?? 1;
+    this.uWaveNext.value = this.registered.get(b)?.wave ?? 0;
+    this.uBlend.value = this.config.reducedMotion ? (t < 0.5 ? 0 : 1) : t;
+    this.current = a;
+    this.dialTo = b;
+    this.dialT = t;
+    this.signal = signal;
+  }
+
+  setCollapse(value: number): void {
+    this.collapse = Math.max(0, Math.min(1, value));
   }
 
   get currentTarget(): number {
@@ -394,6 +433,10 @@ export class Field {
     this.targetDistance = target.distance;
   }
 
+  get dialTarget(): number {
+    return this.dialTo;
+  }
+
   private blendProgress(): number {
     return Math.min(1, (performance.now() - this.blendStart) / (this.blendDuration * 1000));
   }
@@ -427,8 +470,27 @@ export class Field {
     this.uAudioHigh.value = follow(this.uAudioHigh.value, wantBeat);
     this.uEnergy.value *= Math.pow(0.02, dt);
     if (this.uEnergy.value < 0.002) this.uEnergy.value = 0;
+    if (!this.config.reducedMotion) this.uEnergy.value = Math.max(this.uEnergy.value, (1 - this.signal) * 0.8);
+    this.uCollapse.value += (this.collapse - this.uCollapse.value) * Math.min(1, dt * 6);
 
-    const target = this.registered.get(this.current) ?? DEFAULT_TARGET;
+    const from = this.registered.get(this.current) ?? DEFAULT_TARGET;
+    const to = this.registered.get(this.dialTo) ?? from;
+    const mixT = this.blending ? 1 : this.dialT;
+    const m = (a: number, b: number) => a + (b - a) * mixT;
+    const target: RegisteredTarget = {
+      scale: m(from.scale, to.scale),
+      wave: m(from.wave, to.wave),
+      spin: m(from.spin, to.spin),
+      tilt: m(from.tilt, to.tilt),
+      pitch: m(from.pitch, to.pitch),
+      distance: m(from.distance, to.distance),
+      bright: m(from.bright, to.bright) * (0.45 + 0.55 * this.signal) * (1 + this.uCollapse.value * 1.2) * (1 - smoothstepJs(0.9, 1, this.uCollapse.value) * 0.85),
+      react: {
+        radial: m(from.react.radial, to.react.radial),
+        vertical: m(from.react.vertical, to.react.vertical),
+        floor: m(from.react.floor, to.react.floor),
+      },
+    };
     const motion = this.config.reducedMotion ? 0 : 1;
     this.spinAngle += dt * motion;
     const spin = target.spin > 0.5 ? this.spinAngle * target.spin : Math.sin(this.spinAngle * 0.5) * target.spin;
@@ -441,7 +503,7 @@ export class Field {
     this.sprite.position.y += (wantY - this.sprite.position.y) * k;
     this.sprite.rotation.y += (spin + px * 0.35 * motion - this.sprite.rotation.y) * k;
     this.sprite.rotation.x += (target.pitch - py * target.tilt * motion - this.sprite.rotation.x) * k;
-    this.camera.position.z += (this.targetDistance * this.framing.zoom - this.camera.position.z) * k;
+    this.camera.position.z += ((this.blending ? this.targetDistance : target.distance) * this.framing.zoom - this.camera.position.z) * k;
     this.uBrightness.value += (this.baseBrightness * target.bright - this.uBrightness.value) * k;
     this.uReactRadial.value += (target.react.radial - this.uReactRadial.value) * k;
     this.uReactVertical.value += (target.react.vertical - this.uReactVertical.value) * k;

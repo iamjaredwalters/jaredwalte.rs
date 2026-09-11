@@ -1,9 +1,12 @@
+import { LOCK_ON, lerp } from './dial';
+
 export interface TunerElements {
   root: HTMLElement;
   freq: HTMLElement;
   band: HTMLElement;
   callsign: HTMLElement;
   ticks: HTMLElement;
+  dial: HTMLElement;
   status: HTMLElement;
   masthead: HTMLElement;
 }
@@ -14,15 +17,30 @@ export interface TunerStation {
   callsign: string;
 }
 
+export interface DialReading {
+  from: TunerStation;
+  to: TunerStation;
+  t: number;
+  signal: number;
+  nearest: TunerStation;
+}
+
+export interface DialControls {
+  onDrag(deltaFraction: number): void;
+  onStep(direction: 1 | -1): void;
+}
+
 const TICK_COUNT = 160;
 
 export class Tuner {
-  private sweep: number | null = null;
-  private currentValue = 0;
-  private reducedMotion: boolean;
+  private reading: DialReading | null = null;
+  private flicker: number | null = null;
+  private lastText = '';
 
-  constructor(private readonly els: TunerElements, reducedMotion: boolean) {
-    this.reducedMotion = reducedMotion;
+  constructor(
+    private readonly els: TunerElements,
+    private readonly reducedMotion: boolean,
+  ) {
     for (let i = 0; i < TICK_COUNT; i++) this.els.ticks.append(document.createElement('i'));
   }
 
@@ -35,40 +53,85 @@ export class Tuner {
     });
   }
 
-  show(station: TunerStation, locked: boolean): void {
-    const target = Number.parseFloat(station.frequency);
-    this.els.band.textContent = station.band;
-    this.els.callsign.textContent = station.callsign;
+  attachControls(controls: DialControls): void {
+    const dial = this.els.dial;
+    dial.tabIndex = 0;
+    dial.setAttribute('role', 'slider');
+    dial.setAttribute('aria-label', 'Tuning dial');
+    let dragging = false;
+    let lastX = 0;
+    dial.addEventListener('pointerdown', (event) => {
+      dragging = true;
+      lastX = event.clientX;
+      try {
+        dial.setPointerCapture(event.pointerId);
+      } catch {
+        /* synthetic pointer */
+      }
+      dial.classList.add('tuner__dial--dragging');
+    });
+    dial.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const width = this.els.ticks.getBoundingClientRect().width || 1;
+      controls.onDrag((event.clientX - lastX) / width);
+      lastX = event.clientX;
+    });
+    const release = () => {
+      dragging = false;
+      dial.classList.remove('tuner__dial--dragging');
+    };
+    dial.addEventListener('pointerup', release);
+    dial.addEventListener('pointercancel', release);
+    dial.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        controls.onStep(1);
+      } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        controls.onStep(-1);
+      }
+    });
+  }
+
+  dial(reading: DialReading, stationIndex: number, stationCount: number): void {
+    this.reading = reading;
+    const locked = reading.signal >= LOCK_ON;
+    this.els.band.textContent = reading.nearest.band;
+    this.els.callsign.textContent = reading.nearest.callsign;
+    this.els.root.style.setProperty('--signal', reading.signal.toFixed(3));
     this.els.root.classList.toggle('tuner--locked', locked);
+    this.els.root.classList.toggle('tuner--sweeping', !locked);
     this.els.masthead.classList.toggle('masthead--locked', locked);
     this.els.status.textContent = locked ? 'locked' : 'tuning';
-    if (this.sweep !== null) cancelAnimationFrame(this.sweep);
-    if (this.reducedMotion || !locked) {
-      this.currentValue = target;
-      this.els.freq.textContent = formatFrequency(target);
-      this.els.root.classList.remove('tuner--sweeping');
-      return;
+    this.els.dial.setAttribute('aria-valuemin', '1');
+    this.els.dial.setAttribute('aria-valuemax', String(stationCount));
+    this.els.dial.setAttribute('aria-valuenow', String(stationIndex + 1));
+    this.els.dial.setAttribute('aria-valuetext', `${reading.nearest.callsign} ${reading.nearest.frequency} ${reading.nearest.band}`);
+    this.render();
+    if (!locked && !this.reducedMotion && this.flicker === null) {
+      const loop = () => {
+        if (!this.reading || this.reading.signal >= LOCK_ON) {
+          this.flicker = null;
+          this.render();
+          return;
+        }
+        this.render();
+        this.flicker = requestAnimationFrame(loop);
+      };
+      this.flicker = requestAnimationFrame(loop);
     }
-    const from = this.currentValue;
-    const start = performance.now();
-    const duration = 620;
-    this.els.root.classList.add('tuner--sweeping');
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const jitter = t < 1 ? (Math.random() - 0.5) * (1 - t) * 40 : 0;
-      const value = from + (target - from) * eased + jitter;
-      this.els.freq.textContent = formatFrequency(value);
-      if (t < 1) {
-        this.sweep = requestAnimationFrame(step);
-      } else {
-        this.sweep = null;
-        this.currentValue = target;
-        this.els.freq.textContent = formatFrequency(target);
-        this.els.root.classList.remove('tuner--sweeping');
-      }
-    };
-    this.sweep = requestAnimationFrame(step);
+  }
+
+  private render(): void {
+    if (!this.reading) return;
+    const { from, to, t, signal } = this.reading;
+    const value = lerp(Number.parseFloat(from.frequency), Number.parseFloat(to.frequency), t);
+    const jitter = signal >= LOCK_ON || this.reducedMotion ? 0 : (Math.random() - 0.5) * (1 - signal) * 6;
+    const text = formatFrequency(value + jitter);
+    if (text !== this.lastText) {
+      this.lastText = text;
+      this.els.freq.textContent = text;
+    }
   }
 }
 

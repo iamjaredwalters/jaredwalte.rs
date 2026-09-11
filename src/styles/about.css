@@ -97,6 +97,14 @@
   border-top: 1px solid var(--line);
 }
 
+.contact__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .contact__title {
   font-size: clamp(2.6rem, 7vw, 6.5rem);
   font-size: --fluid(2.6rem, 6.5rem);

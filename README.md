@@ -21,7 +21,7 @@ pnpm preview
 - `src/field/portrait.ts` — samples `public/jared-jetski.webp` (alpha-masked cutout) by luminance into a point relief. `scripts/cutout.swift` lifts a subject off its background with macOS Vision: `swift scripts/cutout.swift in.jpg out.png`.
 - `src/field/cloud.ts` — decoder for `public/clouds/*.bin` (header + int16 xyz + rgb8).
 - `src/data/stations.ts` — the seven stations: copy, frequency, callsign, tint, artifact. Palette: bakelite `#131110`, ivory text, and three tints (verdigris, dusty rose, lilac) as registered `--hue/--accent-l/--accent-c` properties that tween between stations.
-- `src/ui/` — station rendering, tuner readout, dossier (View Transitions + `#/station` hash routing).
+- `src/ui/` — station rendering, the dial (`dial.ts`: scroll position → station blend, signal strength with a lock plateau and hysteresis), tuner readout and draggable strip, dossier (View Transitions + `#/station` hash routing).
 - `src/audio/` — Web Audio radio cues; plans are pure and tested for duration/peak.
 - `src/styles/` — tokens (`@property`, `@function`, oklch relative colors), scroll-driven animations, `scroll-state()` container query, `corner-shape`, `sibling-index()`, `text-box`, anchor positioning, popover, `@starting-style`.
 

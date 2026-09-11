@@ -64,6 +64,12 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Tests**: existing generator/manifest tests cover the new station.
 **Status**: Complete (2026-09-10)
 
+## Stage 10: Continuous tuning and sign-off
+**Goal**: scroll position is the dial. `src/ui/dial.ts` maps scrollY to (from, to, t, signal) with a lock plateau around each station; the field blends by t and dissolves into static as signal drops; beds and static follow signal; roger/squelch fire on lock/unlock with hysteresis; the dial strip is draggable and arrow keys step channels. Contact is the sign-off: the field collapses like a tube going dark and audio fades to silence.
+**Success Criteria**: mid-scroll shows a half-formed artifact in static with the readout jittering between frequencies; resting on a station locks cleanly; drag and keys move the page; contact ends on a single glowing dot.
+**Tests**: dial state math and lock hysteresis (vitest).
+**Status**: Complete (2026-09-10)
+
 ## Follow-ups
 - Real device screenshots or short clips inside dossiers (Seevie stick, Ting) once assets are picked.
 - Light theme if ever wanted (tokens are oklch; the field is dark-first).

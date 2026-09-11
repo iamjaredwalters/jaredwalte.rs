@@ -5,18 +5,27 @@ import type { CrossfadeTiming } from './schedule';
 
 type CueName = 'squelch' | 'chirp' | 'roger';
 
+interface ZoneLevels {
+  static: number;
+  bed: number;
+  texture: number;
+}
+
 const SILENT: Levels = { low: 0, mid: 0, high: 0, rms: 0 };
 const WARM_UP: CrossfadeTiming = { outMs: 400, gapMs: 250, inMs: 2200 };
 const STATIC_LOCKED = 0.03;
 const STATIC_WARM = 0.3;
 const STATIC_OPEN = 0.5;
 const TEXTURE_LEVEL = 0.45;
+const LEVEL_RAMP = 0.15;
+const FLOOR = 0.0001;
 
 export class Radio {
   private mixer: Mixer | null = null;
   private noise: AudioBuffer | null = null;
   private zone = 'carrier';
-  private lockTimer: number | undefined;
+  private signal = 1;
+  private lastLevelUpdate = 0;
   enabled = false;
 
   async power(on: boolean): Promise<void> {
@@ -38,19 +47,38 @@ export class Radio {
     this.zone = zoneId;
     if (!this.enabled || !this.mixer) return;
     const clips = clipsForZone(zoneId);
-    if (!initial) void this.cue('squelch');
     const timing = initial ? WARM_UP : undefined;
-    const staticLevel = clips.bed ? STATIC_LOCKED : STATIC_OPEN;
-    void this.mixer.playLoop('static', MANIFEST.static, initial ? STATIC_WARM : staticLevel, initial ? { outMs: 400, gapMs: 100, inMs: 900 } : timing);
-    if (initial) window.setTimeout(() => this.mixer?.setLoopLevel('static', staticLevel, 2.5), 2200);
-    void this.mixer.playLoop('bed', clips.bed, clips.bedLevel, timing);
-    void this.mixer.playLoop('texture', clips.texture, TEXTURE_LEVEL, timing);
-    window.clearTimeout(this.lockTimer);
-    if (!initial && MANIFEST.stations[zoneId]) {
-      this.lockTimer = window.setTimeout(() => {
-        if (this.zone === zoneId) void this.cue('roger');
-      }, 1400);
+    const levels = this.levelsFor(zoneId, initial ? 1 : this.signal);
+    void this.mixer.playLoop('static', MANIFEST.static, initial ? STATIC_WARM : levels.static, initial ? { outMs: 400, gapMs: 100, inMs: 900 } : timing);
+    void this.mixer.playLoop('bed', clips.bed, levels.bed, timing);
+    void this.mixer.playLoop('texture', clips.texture, levels.texture, timing);
+    if (initial) {
+      window.setTimeout(() => this.mixer?.setLoopLevel('static', this.levelsFor(this.zone, this.signal).static, 2.5), 2200);
     }
+  }
+
+  setSignal(zoneId: string, signal: number): void {
+    this.signal = signal;
+    if (zoneId !== this.zone) {
+      void this.tune(zoneId);
+      return;
+    }
+    if (!this.enabled || !this.mixer) return;
+    const now = performance.now();
+    if (now - this.lastLevelUpdate < 60) return;
+    this.lastLevelUpdate = now;
+    const levels = this.levelsFor(zoneId, signal);
+    this.mixer.setLoopLevel('static', levels.static, LEVEL_RAMP);
+    this.mixer.setLoopLevel('bed', levels.bed, LEVEL_RAMP);
+    this.mixer.setLoopLevel('texture', levels.texture, LEVEL_RAMP);
+  }
+
+  lock(zoneId: string): void {
+    if (MANIFEST.stations[zoneId]) void this.cue('roger');
+  }
+
+  unlock(): void {
+    void this.cue('squelch');
   }
 
   chirp(): void {
@@ -67,6 +95,19 @@ export class Radio {
 
   levels(): Levels {
     return this.enabled && this.mixer ? this.mixer.levels() : SILENT;
+  }
+
+  private levelsFor(zoneId: string, signal: number): ZoneLevels {
+    const clips = clipsForZone(zoneId);
+    if (zoneId === 'contact') {
+      return { static: STATIC_LOCKED * (1 - signal) + 0.015, bed: clips.bedLevel * (1 - signal) + FLOOR, texture: FLOOR };
+    }
+    const staticLevel = clips.bed ? STATIC_OPEN + (STATIC_LOCKED - STATIC_OPEN) * signal : STATIC_OPEN;
+    return {
+      static: staticLevel,
+      bed: clips.bedLevel * (0.12 + 0.88 * signal) + FLOOR,
+      texture: TEXTURE_LEVEL * (0.1 + 0.9 * signal) + FLOOR,
+    };
   }
 
   private async preload(): Promise<void> {
@@ -90,11 +131,12 @@ export class Radio {
     for (const segment of plan.segments) {
       const start = now + segment.startMs / 1000;
       const end = start + segment.durationMs / 1000;
+      const peak = segment.peak * 0.4;
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(segment.peak, start + 0.006);
-      gain.gain.setValueAtTime(segment.peak, Math.max(start + 0.006, end - 0.04));
-      gain.gain.exponentialRampToValueAtTime(0.0001, end);
+      gain.gain.setValueAtTime(FLOOR, start);
+      gain.gain.exponentialRampToValueAtTime(peak, start + 0.006);
+      gain.gain.setValueAtTime(peak, Math.max(start + 0.006, end - 0.04));
+      gain.gain.exponentialRampToValueAtTime(FLOOR, end);
       gain.connect(this.mixer.cueBus);
       if (segment.kind === 'tone') {
         const osc = ctx.createOscillator();
