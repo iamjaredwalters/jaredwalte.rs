@@ -76,6 +76,12 @@ Stack: Vite 8 + TypeScript 7 + three 0.185 (`three/webgpu`, `three/tsl`). No fra
 **Tests**: weight arrays present and bounded for the four weighted generators; absent for the rest.
 **Status**: Complete (2026-09-10)
 
+## Stage 12: Cross-browser
+**Goal**: Firefox parity for the core interactions. The tick strip is JS-driven with a detent (marker eases under the needle while locked, follows scroll while tuning) instead of a CSS scroll-timeline; ticks, meter bars and detail stagger use a JS-set `--i` instead of `sibling-index()`; scroll-driven reveals disable cleanly where unsupported; WebGPU is probed with `requestAdapter` so a blocklisted Firefox takes the WebGL budget; target buffers are read-only and the hot weight rides in the colour buffer's w so WebGL transform feedback stays within its four outputs; late-registered targets (clouds, portrait) write into the attribute's live array and refresh the WebGL PBO texture, which previously left every late target black on the WebGL path.
+**Success Criteria**: Ting marker within 2 px of the needle in Chrome and Firefox; no WebGL warnings; mid-tune state reports "tuning" in both.
+**Tests**: existing unit tests; Playwright Firefox script in `/tmp/pwff/ff.mjs` (not committed).
+**Status**: Complete (2026-09-10)
+
 ## Follow-ups
 - Real device screenshots or short clips inside dossiers (Seevie stick, Ting) once assets are picked.
 - Light theme if ever wanted (tokens are oklch; the field is dark-first).

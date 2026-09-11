@@ -75,18 +75,7 @@
   align-items: flex-end;
   gap: 0.5rem;
   width: max-content;
-  animation: dial linear both;
-  animation-timeline: scroll(root);
-  animation-range: 0 100%;
-}
-
-@keyframes dial {
-  from {
-    translate: 0 0;
-  }
-  to {
-    translate: -100% 0;
-  }
+  will-change: translate;
 }
 
 .tuner__ticks i {
@@ -100,12 +89,6 @@
 .tuner__ticks i:nth-child(5n + 1) {
   height: 0.9rem;
   background: var(--paper-2);
-}
-
-@supports not (animation-timeline: scroll()) {
-  .tuner__ticks {
-    animation: none;
-  }
 }
 
 .tuner__ticks i[data-station] {

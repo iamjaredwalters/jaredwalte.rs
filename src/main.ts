@@ -128,17 +128,16 @@ async function boot(): Promise<void> {
   });
 
   const canvas = must<HTMLCanvasElement>('#field');
-  const forceWebGL = new URLSearchParams(location.search).has('gl');
-  const hasWebGPU = 'gpu' in navigator && !forceWebGL;
+  const { Field: FieldEngine, probeWebGPU } = await import('@/field/engine');
+  const hasWebGPU = !new URLSearchParams(location.search).has('gl') && (await probeWebGPU());
   const particleCount = hasWebGPU ? (coarse ? 131072 : 262144) : 65536;
-  const { Field: FieldEngine } = await import('@/field/engine');
   const field = new FieldEngine({
     canvas,
     particleCount,
     targetPoints: TARGET_POINTS,
     targetCount: TARGET_COUNT,
     reducedMotion,
-    forceWebGL,
+    forceWebGL: !hasWebGPU,
   });
   (window as unknown as { __field: Field; __radio: Radio }).__field = field;
   (window as unknown as { __field: Field; __radio: Radio }).__radio = radio;
@@ -201,12 +200,12 @@ async function boot(): Promise<void> {
     }
     const stationIndex = nearest.station ? STATIONS.indexOf(nearest.station) : -1;
     tuner.dial({ from: from.readout, to: to.readout, t: state.t, signal: state.signal, nearest: nearest.readout }, Math.max(0, stationIndex), STATIONS.length);
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    tuner.setProgress(scrollable > 0 ? window.scrollY / scrollable : 0);
     currentZone = nearest.id;
     radio.setSignal(nearest.id, state.signal);
     const wasLocked = locked;
     locked = nextLock(locked, state.signal);
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    tuner.setProgress(scrollable > 0 ? window.scrollY / scrollable : 0, locked && scrollable > 0 ? nearest.top / scrollable : null);
     if (locked && !wasLocked) {
       lockedZone = nearest.id;
       radio.lock(nearest.id);
@@ -291,6 +290,14 @@ async function boot(): Promise<void> {
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {
     field.resize();
+    measure();
+    updateDial();
+  });
+  new ResizeObserver(() => {
+    measure();
+    updateDial();
+  }).observe(document.body);
+  void document.fonts.ready.then(() => {
     measure();
     updateDial();
   });

@@ -32,15 +32,13 @@ export interface DialControls {
 
 const TICK_COUNT = 160;
 
-export function supportsScrollTimeline(): boolean {
-  return typeof CSS !== 'undefined' && CSS.supports('animation-timeline', 'scroll()');
-}
-
 export class Tuner {
   private reading: DialReading | null = null;
   private flicker: number | null = null;
   private lastText = '';
-  private readonly nativeStrip = supportsScrollTimeline();
+  private stripTarget = 0;
+  private stripCurrent = 0;
+  private stripLoop: number | null = null;
 
   constructor(
     private readonly els: TunerElements,
@@ -54,9 +52,20 @@ export class Tuner {
     this.els.root.querySelectorAll<HTMLElement>('.tuner__meter i').forEach((bar, index) => bar.style.setProperty('--i', String(index + 1)));
   }
 
-  setProgress(fraction: number): void {
-    if (this.nativeStrip) return;
-    this.els.ticks.style.translate = `${(-Math.min(1, Math.max(0, fraction)) * 100).toFixed(3)}% 0`;
+  setProgress(fraction: number, detent: number | null): void {
+    this.stripTarget = Math.min(1, Math.max(0, detent ?? fraction));
+    if (this.reducedMotion || detent === null) {
+      this.stripCurrent = detent === null ? this.stripTarget : this.stripCurrent;
+    }
+    if (this.stripLoop === null) this.stripLoop = requestAnimationFrame(() => this.stepStrip());
+  }
+
+  private stepStrip(): void {
+    this.stripLoop = null;
+    const delta = this.stripTarget - this.stripCurrent;
+    this.stripCurrent = Math.abs(delta) < 0.0002 ? this.stripTarget : this.stripCurrent + delta * 0.18;
+    this.els.ticks.style.translate = `${(-this.stripCurrent * 100).toFixed(3)}% 0`;
+    if (this.stripCurrent !== this.stripTarget) this.stripLoop = requestAnimationFrame(() => this.stepStrip());
   }
 
   markStations(fractions: number[]): void {

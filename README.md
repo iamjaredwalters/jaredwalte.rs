@@ -12,7 +12,9 @@ pnpm build      # typecheck + vite build → dist/
 pnpm preview
 ```
 
-`?gl` on the URL forces the WebGL 2 fallback (65k particles). WebGPU gets 262k on desktop, 131k on coarse pointers.
+`?gl` on the URL forces the WebGL 2 fallback (65k particles). WebGPU (probed with `requestAdapter`, since Firefox exposes `navigator.gpu` but blocklists it on macOS) gets 262k on desktop, 131k on coarse pointers.
+
+Cross-browser check: `cd /tmp/pwff && node ff.mjs` drives Playwright's Firefox through the hero, a station and a mid-tune state and prints alignment numbers and console warnings (set up with `npm i playwright && npx playwright install firefox`). Headless Firefox does not render the WebGL field; the numbers and layout are still valid.
 
 ## Layout
 

@@ -83,6 +83,16 @@ const NO_REACTION: Reaction = { radial: 0, vertical: 0, floor: -1, z: 0 };
 const DEFAULT_POINT_WEIGHT = 0.5;
 const DEFAULT_TARGET: RegisteredTarget = { scale: 1, wave: 0, spin: 0.12, tilt: 0.1, pitch: 0, distance: 3.1, bright: 1, jitter: 0.014, turbulence: 0.0022, react: NO_REACTION };
 
+export async function probeWebGPU(): Promise<boolean> {
+  const gpu = (navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } }).gpu;
+  if (!gpu) return false;
+  try {
+    return (await gpu.requestAdapter()) !== null;
+  } catch {
+    return false;
+  }
+}
+
 export class Field {
   readonly backend: 'webgpu' | 'webgl';
   private readonly renderer: THREE.WebGPURenderer;
@@ -91,8 +101,6 @@ export class Field {
   private readonly sprite: THREE.Sprite;
   private readonly targetPos: THREE.StorageBufferNode<'vec4'>;
   private readonly targetCol: THREE.StorageBufferNode<'vec4'>;
-  private readonly targetPosArray: Float32Array;
-  private readonly targetColArray: Float32Array;
   private readonly computeInit: THREE.ComputeNode;
   private readonly computeUpdate: THREE.ComputeNode;
   private readonly pipeline: THREE.RenderPipeline;
@@ -163,10 +171,10 @@ export class Field {
     this.camera.position.set(0, 0, DEFAULT_TARGET.distance);
     this.scene.background = new THREE.Color(0x131110);
 
-    this.targetPosArray = new Float32Array(targetPoints * targetCount * 4);
-    this.targetColArray = new Float32Array(targetPoints * targetCount * 4);
-    this.targetPos = instancedArray(this.targetPosArray, 'vec4');
-    this.targetCol = instancedArray(this.targetColArray, 'vec4');
+    this.targetPos = instancedArray(new Float32Array(targetPoints * targetCount * 4), 'vec4');
+    this.targetCol = instancedArray(new Float32Array(targetPoints * targetCount * 4), 'vec4');
+    this.targetPos.setAccess(THREE.NodeAccess.READ_ONLY);
+    this.targetCol.setAccess(THREE.NodeAccess.READ_ONLY);
     if (this.backend === 'webgl') {
       this.targetPos.setPBO(true);
       this.targetCol.setPBO(true);
@@ -174,8 +182,7 @@ export class Field {
 
     const positions = instancedArray(particleCount, 'vec3');
     const velocities = instancedArray(particleCount, 'vec3');
-    const colors = instancedArray(particleCount, 'vec3');
-    const hotness = instancedArray(particleCount, 'float');
+    const colors = instancedArray(particleCount, 'vec4');
 
     const M = uint(targetPoints);
 
@@ -190,7 +197,7 @@ export class Field {
       const z = v.mul(2).sub(1);
       const r = float(1).sub(z.mul(z)).sqrt().mul(w.mul(0.6).add(1.2));
       position.assign(vec3(r.mul(theta.cos()), z.mul(1.6), r.mul(theta.sin())));
-      color.assign(vec3(0.5, 0.42, 0.3));
+      color.assign(vec4(0.5, 0.42, 0.3, 0.5));
     })().compute(particleCount);
 
     const uPrev = this.uPrev;
@@ -231,7 +238,6 @@ export class Field {
       const jitter = vec3(hash(i.add(uint(11))), hash(i.add(uint(23))), hash(i.add(uint(37)))).sub(0.5).mul(uJitter);
       const goalRaw = mix(pA.mul(uScalePrev), pB.mul(uScaleNext), ease);
       const hot = mix(targetCol.element(offsetPrev).w, targetCol.element(offsetNext).w, ease);
-      hotness.element(i).assign(hot);
       const waveAmp = mix(uWavePrev, uWaveNext, ease);
       const wave = sin(goalRaw.x.mul(5.2).sub(time.mul(2.4))).mul(waveAmp.mul(float(1).add(uAudioLow.mul(1.4)))).mul(float(1).sub(goalRaw.z.abs().mul(0.8)));
       const reactNoise = mx_noise_float(goalRaw.mul(2.4).add(vec3(time.mul(0.35), time.mul(0.2), 0))).mul(0.5).add(0.5);
@@ -258,13 +264,14 @@ export class Field {
       position.addAssign(velocity);
 
       const goalColor = mix(cA, cB, ease);
-      color.assign(mix(color, goalColor, 0.07));
+      color.assign(vec4(mix(color.xyz, goalColor, 0.07), hot));
     })().compute(particleCount);
 
     const material = new THREE.SpriteNodeMaterial();
     material.positionNode = positions.toAttribute();
-    const glowAttr = hotness.toAttribute();
-    material.colorNode = vec4(colors.toAttribute().xyz.mul(this.uBrightness.mul(float(1).add(this.uAudioHigh.mul(glowAttr).mul(1.6)))), 1);
+    const colorAttr = colors.toAttribute();
+    const glowAttr = colorAttr.w;
+    material.colorNode = vec4(colorAttr.xyz.mul(this.uBrightness.mul(float(1).add(this.uAudioHigh.mul(glowAttr).mul(1.6)))), 1);
     const d = length(uv().sub(0.5));
     material.opacityNode = float(1).sub(smoothstep(0.1, 0.5, d)).mul(this.uAlpha);
     material.scaleNode = this.uSize.mul(hash(instanceIndex.add(uint(5))).mul(0.9).add(0.55)).mul(float(1).add(this.uAudioHigh.mul(glowAttr).mul(0.7)));
@@ -305,19 +312,25 @@ export class Field {
     if (index < 0 || index >= targetCount) throw new Error(`field: target ${index} out of range`);
     const count = Math.min(targetPoints, data.positions.length / 3);
     const base = index * targetPoints * 4;
+    const posAttribute = this.targetPos.value as THREE.StorageInstancedBufferAttribute & { pbo?: THREE.DataTexture };
+    const colAttribute = this.targetCol.value as THREE.StorageInstancedBufferAttribute & { pbo?: THREE.DataTexture };
+    const positions = posAttribute.array as Float32Array;
+    const colors = colAttribute.array as Float32Array;
     for (let i = 0; i < targetPoints; i++) {
       const src = (i % count) * 3;
       const dst = base + i * 4;
-      this.targetPosArray[dst] = data.positions[src];
-      this.targetPosArray[dst + 1] = data.positions[src + 1];
-      this.targetPosArray[dst + 2] = data.positions[src + 2];
-      this.targetColArray[dst] = data.colors[src];
-      this.targetColArray[dst + 1] = data.colors[src + 1];
-      this.targetColArray[dst + 2] = data.colors[src + 2];
-      this.targetColArray[dst + 3] = data.weights ? data.weights[i % count] : DEFAULT_POINT_WEIGHT;
+      positions[dst] = data.positions[src];
+      positions[dst + 1] = data.positions[src + 1];
+      positions[dst + 2] = data.positions[src + 2];
+      colors[dst] = data.colors[src];
+      colors[dst + 1] = data.colors[src + 1];
+      colors[dst + 2] = data.colors[src + 2];
+      colors[dst + 3] = data.weights ? data.weights[i % count] : DEFAULT_POINT_WEIGHT;
     }
-    this.targetPos.value.needsUpdate = true;
-    this.targetCol.value.needsUpdate = true;
+    posAttribute.needsUpdate = true;
+    colAttribute.needsUpdate = true;
+    if (posAttribute.pbo) posAttribute.pbo.needsUpdate = true;
+    if (colAttribute.pbo) colAttribute.pbo.needsUpdate = true;
     this.registered.set(index, { ...DEFAULT_TARGET, ...options, react: { ...NO_REACTION, ...options.react } });
     if (index === this.current) this.applyTargetUniforms();
   }
