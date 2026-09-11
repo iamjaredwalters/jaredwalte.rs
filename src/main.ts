@@ -3,6 +3,7 @@ import { ALSO_ON_AIR, STATIONS, applyTint, type Station, type TintName } from '@
 import { loadCloud } from '@/field/cloud';
 import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
+import { morseMarks, renderAddress, signoffTarget } from '@/field/signoff';
 import { PROCEDURAL } from '@/field/targets';
 import { dialState, lerp, nextLock } from '@/ui/dial';
 import { Dossier } from '@/ui/dossier';
@@ -10,7 +11,7 @@ import { renderAlso, renderStations } from '@/ui/render';
 import { Tuner, type TunerStation } from '@/ui/tuner';
 
 const TARGET_POINTS = 65536;
-const SLOT = { carrier: 0, portrait: 8, shell: 9, phone: 10 } as const;
+const SLOT = { carrier: 0, portrait: 8, shell: 9, signoff: 10 } as const;
 const STATION_SLOT = (index: number) => index + 1;
 const TARGET_COUNT = 11;
 
@@ -93,11 +94,11 @@ async function boot(): Promise<void> {
     {
       id: 'contact',
       element: must('#contact'),
-      slot: SLOT.phone,
+      slot: SLOT.signoff,
       station: null,
       tint: 'verdigris',
       readout: SIGN_OFF,
-      framing: () => (wide.matches ? { offsetX: 1.0, offsetY: 0.2, zoom: 1 } : { offsetX: 0, offsetY: 0.6, zoom: 1.35 }),
+      framing: () => (wide.matches ? { offsetX: 0.15, offsetY: -0.42, zoom: 1 } : { offsetX: 0, offsetY: -0.45, zoom: 1.9 }),
       top: 0,
     },
   ];
@@ -318,8 +319,8 @@ async function boot(): Promise<void> {
     }
   });
   loads.push(
-    loadCloud('/clouds/handset.bin').then((cloud) => {
-      field.setTarget(SLOT.phone, { positions: cloud.positions, colors: cloud.colors, weights: cloud.weights }, { scale: 0.62, spin: 0.35, tilt: 0.12, pitch: 0.0, distance: 3.1, bright: 0.75, react: { z: 0.06 } });
+    renderAddress('me@jaredwalte.rs').then((address) => {
+      field.setTarget(SLOT.signoff, signoffTarget(address, morseMarks('73'), TARGET_POINTS), { scale: 0.8, spin: 0, tilt: 0.04, pitch: 0, distance: 3.1, bright: 0.5, react: { z: 0.1 } });
       updateDial();
     }),
   );

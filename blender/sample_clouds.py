@@ -100,4 +100,3 @@ def export_cloud(root_name, filename, count=COUNT, seed=7):
 if __name__ == "__main__":
     export_cloud("Ting", "ting.bin")
     export_cloud("Stick", "stick.bin")
-    export_cloud("Handset", "handset.bin")

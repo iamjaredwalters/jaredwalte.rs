@@ -18,6 +18,7 @@ pnpm preview
 
 - `src/field/engine.ts` — three r185 `WebGPURenderer` + TSL. Storage buffers for position/velocity/color, a `targetCount × targetPoints` storage buffer of morph targets, one compute pass per frame (spring to target, noise turbulence, pointer repulsion), additive sprites, bloom + grain post pass via `RenderPipeline`.
 - `src/field/targets.ts` — procedural point-cloud generators (carrier wave, globe, constellation dome, hub graph, bar ledger, terrain). Pure, seeded, unit-tested.
+- `src/field/signoff.ts` — renders the email address with the site's display face on a canvas and samples it into points, with `73` in Morse above it as the hot nodes.
 - `src/field/portrait.ts` — samples `public/jared-jetski.webp` (alpha-masked cutout) by luminance into a point relief. `scripts/cutout.swift` lifts a subject off its background with macOS Vision: `swift scripts/cutout.swift in.jpg out.png`.
 - `src/field/cloud.ts` — decoder for `public/clouds/*.bin` (header + int16 xyz + rgb8, v2 adds a hot-weight byte).
 - `src/data/stations.ts` — the seven stations: copy, frequency, callsign, tint, artifact. Palette: bakelite `#131110`, ivory text, and three tints (verdigris, dusty rose, lilac) as registered `--hue/--accent-l/--accent-c` properties that tween between stations.
@@ -33,7 +34,7 @@ At runtime everything stays behind the masthead power switch. `src/audio/mixer.t
 
 ## Blender artifacts
 
-The Ting mic, the Seevie stick and the sign-off handset are modeled with primitives by `blender/build_models.py` (idempotent: rebuilds a scene named `Portfolio`, separate from any open scene) and sampled to colored point clouds by `blender/sample_clouds.py`. To regenerate: open Blender with the MCP add-on connected, then run both scripts in order via the MCP `execute_blender_code` tool (or paste them into the Text Editor). It writes `public/clouds/ting.bin`, `stick.bin` and `handset.bin` (65,536 front-hemisphere surface samples each, format v2: int16 xyz, rgb8, and a per-point hot weight from each object's `hot` property).
+The Ting mic and the Seevie stick are modeled with primitives by `blender/build_models.py` (idempotent: rebuilds a scene named `Portfolio`, separate from any open scene) and sampled to colored point clouds by `blender/sample_clouds.py`. To regenerate: open Blender with the MCP add-on connected, then run both scripts in order via the MCP `execute_blender_code` tool (or paste them into the Text Editor). It writes `public/clouds/ting.bin` and `stick.bin` (65,536 front-hemisphere surface samples each, format v2: int16 xyz, rgb8, and a per-point hot weight from each object's `hot` property).
 
 ## Deploy
 
