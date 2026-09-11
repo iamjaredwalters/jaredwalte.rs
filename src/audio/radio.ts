@@ -8,6 +8,7 @@ type CueName = 'squelch' | 'chirp' | 'roger';
 const SILENT: Levels = { low: 0, mid: 0, high: 0, rms: 0 };
 const WARM_UP: CrossfadeTiming = { outMs: 400, gapMs: 250, inMs: 2200 };
 const STATIC_LOCKED = 0.03;
+const STATIC_WARM = 0.3;
 const STATIC_OPEN = 0.5;
 const TEXTURE_LEVEL = 0.45;
 
@@ -39,7 +40,9 @@ export class Radio {
     const clips = clipsForZone(zoneId);
     if (!initial) void this.cue('squelch');
     const timing = initial ? WARM_UP : undefined;
-    void this.mixer.playLoop('static', MANIFEST.static, clips.bed ? STATIC_LOCKED : STATIC_OPEN, timing);
+    const staticLevel = clips.bed ? STATIC_LOCKED : STATIC_OPEN;
+    void this.mixer.playLoop('static', MANIFEST.static, initial ? STATIC_WARM : staticLevel, initial ? { outMs: 400, gapMs: 100, inMs: 900 } : timing);
+    if (initial) window.setTimeout(() => this.mixer?.setLoopLevel('static', staticLevel, 2.5), 2200);
     void this.mixer.playLoop('bed', clips.bed, clips.bedLevel, timing);
     void this.mixer.playLoop('texture', clips.texture, TEXTURE_LEVEL, timing);
     window.clearTimeout(this.lockTimer);
