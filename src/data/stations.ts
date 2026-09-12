@@ -65,7 +65,7 @@ export const STATIONS: Station[] = [
       'The iPhone app draws each agent\'s work as particles: embers while it uses tools, sediment when the turn is done, a card when it needs an answer.',
       'Everything is a card: post a question, wait for the answer. Permission prompts from a headless Claude Code ride the same lane.',
     ],
-    origin: 'The StarCraft SCV, the worker that gathers resources, hauls them back to base and builds the structures. Say it out loud.',
+    origin: 'The StarCraft SCV, the worker you point at a job and forget about until it comes back with the goods. Same job, with a stick for the click. Say it out loud.',
     stack: ['ESP32-S3 / C++', 'Cloudflare Workers + DO + D1', 'Gemini Live', 'SwiftUI + Metal', 'Node'],
     year: '2025–26',
     links: [{ label: 'seevie.dev', href: 'https://seevie.dev' }],
