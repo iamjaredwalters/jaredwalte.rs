@@ -21,7 +21,7 @@ The carrier (hero) and the sign-off sit at 000.000: nothing tuned.
 
 ## Sign-on and sign-off
 
-The hero eyebrow is the sign-on: `CQ CQ CQ de JW`, the general call meaning "calling any station", sent three times with the callsign, followed by the station particulars. The contact section answers it.
+The hero is the sign-on, unlabelled: while the dial is locked on the carrier, the wave keys `CQ CQ CQ DE JW K` in Morse at 80 ms per dot (the general call, "calling any station", three times, then the callsign and "go ahead"), dipping to 85% brightness on the gaps, resting four seconds, then calling again. With audio on, the same schedule plays once as a 600 Hz sidetone after the bed has faded in. `src/audio/keyer.ts` turns the marks into the schedule and the sidetone plan; the engine's `setKeyer` applies it to brightness. Reduced motion keeps the carrier steady. The contact section answers it.
 
 The contact section spells `73 DE JW` in Morse on a dead carrier trace (`src/field/signoff.ts`). `73` is the amateur-radio sign-off for "best regards" (from the 1859 Western Union numeric code, where 88 is "love and kisses"); `DE` is the procedural word for "from" that separates stations in a contact; `JW` stands in for a callsign. Timing is standard: dot 1 unit, dash 3, 1 between elements, 3 between letters, 7 between words, so the trace reads `--... ...--  -.. .  .--- .--`. The pulses are the only reactive nodes and breathe with the music.
 

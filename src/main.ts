@@ -5,6 +5,7 @@ import type { Field, Framing, TargetOptions } from '@/field/engine';
 import { portraitFromImage } from '@/field/portrait';
 import { followTint } from '@/ui/favicon';
 import { initChannels } from '@/ui/channels';
+import { keyLevel, keySchedule, sidetonePlan } from '@/audio/keyer';
 import portraitUrl from '@/assets/portrait.webp';
 import { morseMarks, signoffTarget } from '@/field/signoff';
 import { PROCEDURAL } from '@/field/targets';
@@ -128,6 +129,7 @@ async function boot(): Promise<void> {
     power.setAttribute('aria-pressed', String(on));
     power.querySelector('.power__label')!.textContent = on ? 'Audio on' : 'Audio off';
     await radio.power(on);
+    if (on && keying) callCq(2800);
   });
 
   const canvas = must<HTMLCanvasElement>('#field');
@@ -168,6 +170,17 @@ async function boot(): Promise<void> {
   let frozen = false;
   let currentZone = 'carrier';
   let lastFrom = 0;
+  const CQ = keySchedule('CQ CQ CQ DE JW K', 80);
+  let keying = false;
+  let cqTimer = 0;
+  const callCq = (afterMs: number) => {
+    window.clearTimeout(cqTimer);
+    cqTimer = window.setTimeout(() => {
+      const startedAt = performance.now();
+      if (!reducedMotion) field.setKeyer((now) => keyLevel(CQ, now - startedAt, 0.85, 4000));
+      radio.sidetone(sidetonePlan(CQ));
+    }, afterMs);
+  };
   let lastTo = 0;
 
   function measure(): void {
@@ -197,6 +210,16 @@ async function boot(): Promise<void> {
     const a = from.framing();
     const b = to.framing();
     field.setFraming({ offsetX: lerp(a.offsetX, b.offsetX, state.t), offsetY: lerp(a.offsetY, b.offsetY, state.t), zoom: lerp(a.zoom, b.zoom, state.t) });
+    const lockedOnCarrier = nearest.id === 'carrier' && state.signal > 0.95;
+    if (lockedOnCarrier !== keying) {
+      keying = lockedOnCarrier;
+      if (keying) callCq(1600);
+      else {
+        window.clearTimeout(cqTimer);
+        field.setKeyer(null);
+        radio.hush();
+      }
+    }
     if (nearest.tint !== activeTint) {
       activeTint = nearest.tint;
       applyTint(document.documentElement, nearest.tint);

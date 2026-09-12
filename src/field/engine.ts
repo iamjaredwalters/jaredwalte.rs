@@ -134,6 +134,8 @@ export class Field {
   private readonly uSize = uniform(0.0085);
   private readonly uBrightness = uniform(0.13);
   private baseBrightness = 0.13;
+  private brightnessLevel = 0.13;
+  private keyer: ((nowMs: number) => number) | null = null;
   private readonly uAlpha = uniform(0.7);
   private readonly uBloom = uniform(0.4);
   private readonly uAudioLow = uniform(0);
@@ -174,6 +176,7 @@ export class Field {
     this.renderer.toneMappingExposure = 1.0;
     if (this.backend === 'webgl') {
       this.baseBrightness = 0.3;
+      this.brightnessLevel = 0.3;
       this.uBrightness.value = 0.3;
       this.uSize.value = 0.011;
     }
@@ -438,6 +441,10 @@ export class Field {
     this.baseBrightness = value;
   }
 
+  setKeyer(keyer: ((nowMs: number) => number) | null): void {
+    this.keyer = keyer;
+  }
+
   debugSet(params: Partial<Record<'size' | 'brightness' | 'alpha' | 'bloom' | 'stiffness' | 'damping' | 'exposure', number>>): void {
     if (params.size !== undefined) this.uSize.value = params.size;
     if (params.brightness !== undefined) this.baseBrightness = params.brightness;
@@ -570,7 +577,8 @@ export class Field {
     this.sprite.rotation.y += (spin + px * 0.35 * motion - this.sprite.rotation.y) * k;
     this.sprite.rotation.x += (target.pitch - py * target.tilt * motion - this.sprite.rotation.x) * k;
     this.camera.position.z += ((this.blending ? this.targetDistance : target.distance) * this.framing.zoom - this.camera.position.z) * k;
-    this.uBrightness.value += (this.baseBrightness * target.bright - this.uBrightness.value) * k;
+    this.brightnessLevel += (this.baseBrightness * target.bright - this.brightnessLevel) * k;
+    this.uBrightness.value = this.brightnessLevel * (this.keyer ? this.keyer(performance.now()) : 1);
     this.uReactRadial.value += (target.react.radial - this.uReactRadial.value) * k;
     this.uReactVertical.value += (target.react.vertical - this.uReactVertical.value) * k;
     this.uReactFloor.value += (target.react.floor - this.uReactFloor.value) * k;

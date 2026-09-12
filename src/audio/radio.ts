@@ -26,6 +26,7 @@ export class Radio {
   private zone = 'carrier';
   private signal = 1;
   private lastLevelUpdate = 0;
+  private hushSidetone: (() => void) | null = null;
   enabled = false;
 
   async power(on: boolean): Promise<void> {
@@ -93,6 +94,17 @@ export class Radio {
     this.mixer?.duck(on);
   }
 
+  sidetone(plan: CuePlan): void {
+    this.hush();
+    if (!this.enabled) return;
+    this.hushSidetone = this.synth(plan);
+  }
+
+  hush(): void {
+    this.hushSidetone?.();
+    this.hushSidetone = null;
+  }
+
   levels(): Levels {
     return this.enabled && this.mixer ? this.mixer.levels() : SILENT;
   }
@@ -124,10 +136,12 @@ export class Radio {
     if (!played) this.synth(name === 'squelch' ? squelchPlan() : name === 'chirp' ? chirpPlan() : rogerPlan());
   }
 
-  private synth(plan: CuePlan): void {
-    if (!this.mixer || !this.noise) return;
+  private synth(plan: CuePlan): (() => void) | null {
+    if (!this.mixer || !this.noise) return null;
     const ctx = this.mixer.ctx;
     const now = ctx.currentTime;
+    const gains: GainNode[] = [];
+    const playing = new Set<AudioScheduledSourceNode>();
     for (const segment of plan.segments) {
       const start = now + segment.startMs / 1000;
       const end = start + segment.durationMs / 1000;
@@ -138,6 +152,7 @@ export class Radio {
       gain.gain.setValueAtTime(peak, Math.max(start + 0.006, end - 0.04));
       gain.gain.exponentialRampToValueAtTime(FLOOR, end);
       gain.connect(this.mixer.cueBus);
+      gains.push(gain);
       if (segment.kind === 'tone') {
         const osc = ctx.createOscillator();
         osc.type = segment.wave;
@@ -145,6 +160,8 @@ export class Radio {
         osc.connect(gain);
         osc.start(start);
         osc.stop(end + 0.01);
+        playing.add(osc);
+        osc.onended = () => playing.delete(osc);
       } else {
         const source = ctx.createBufferSource();
         source.buffer = this.noise;
@@ -155,8 +172,18 @@ export class Radio {
         source.connect(filter).connect(gain);
         source.start(start);
         source.stop(end + 0.01);
+        playing.add(source);
+        source.onended = () => playing.delete(source);
       }
     }
+    return () => {
+      const at = ctx.currentTime;
+      for (const gain of gains) {
+        gain.gain.cancelScheduledValues(at);
+        gain.gain.setValueAtTime(FLOOR, at);
+      }
+      for (const source of playing) source.stop(at + 0.02);
+    };
   }
 }
 
