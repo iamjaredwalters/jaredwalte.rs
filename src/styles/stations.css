@@ -74,8 +74,7 @@
 
 @supports not (animation-timeline: scroll()) {
   .station__name,
-  .station__text,
-  .station__details li {
+  .station__text {
     animation: none;
   }
 }
@@ -116,45 +115,6 @@
 .station__brief {
   max-width: var(--measure);
   color: var(--paper-2);
-}
-
-.station__details {
-  margin: 0.4rem 0 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.6rem;
-  font-size: 0.95rem;
-  color: var(--paper-2);
-}
-
-.station__details li {
-  padding-inline-start: 1.4rem;
-  position: relative;
-  animation: detail-in 700ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 1) * 90ms);
-  animation-timeline: view();
-  animation-range: entry 30% entry 70%;
-}
-
-.station__details li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 0.5rem;
-  height: 0.5rem;
-  background: var(--accent);
-  border-radius: 0.15rem;
-  corner-shape: bevel;
-  opacity: 0.85;
-}
-
-@keyframes detail-in {
-  from {
-    opacity: 0;
-    translate: -0.5rem 0;
-  }
 }
 
 .station__actions {
@@ -211,9 +171,6 @@
 }
 
 @media (height < 58rem) {
-  .station__details li:nth-child(3) {
-    display: none;
-  }
   .station__brief {
     font-size: 0.95rem;
   }

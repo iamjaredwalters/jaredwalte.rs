@@ -279,6 +279,7 @@ async function boot(): Promise<void> {
       pitch: must('#dossier-pitch'),
       brief: must('#dossier-brief'),
       details: must('#dossier-details'),
+      origin: must('#dossier-origin'),
       stack: must('#dossier-stack'),
       year: must('#dossier-year'),
       links: must('#dossier-links'),

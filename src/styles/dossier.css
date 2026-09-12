@@ -143,6 +143,21 @@ html.dossier-open .footer {
   corner-shape: bevel;
 }
 
+.dossier__label {
+  margin: 0.4rem 0 -0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.dossier__origin {
+  max-width: var(--measure);
+  font-size: 0.95rem;
+  color: var(--paper-2);
+}
+
 .dossier__meta {
   display: grid;
   gap: 0.8rem;

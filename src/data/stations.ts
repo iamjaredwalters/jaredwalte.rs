@@ -41,6 +41,7 @@ export interface Station {
   pitch: string;
   brief: string;
   details: string[];
+  origin: string;
   stack: string[];
   year: string;
   links: StationLink[];
@@ -64,6 +65,7 @@ export const STATIONS: Station[] = [
       'The iPhone app draws each agent\'s work as particles: embers while it uses tools, sediment when the turn is done, a card when it needs an answer.',
       'Everything is a card: post a question, wait for the answer. Permission prompts from a headless Claude Code ride the same lane.',
     ],
+    origin: 'The StarCraft SCV, the worker that gathers resources, hauls them back to base and builds the structures. Say it out loud.',
     stack: ['ESP32-S3 / C++', 'Cloudflare Workers + DO + D1', 'Gemini Live', 'SwiftUI + Metal', 'Node'],
     year: '2025–26',
     links: [{ label: 'seevie.dev', href: 'https://seevie.dev' }],
@@ -85,6 +87,7 @@ export const STATIONS: Station[] = [
       'The mic\'s buttons play tones and the software hears them as keystrokes. White means yes when the radio asks permission.',
       'A small audio chain adds static, squelch and the roger beep. The short acknowledgements are Charlie Duke\'s actual 1969 lines.',
     ],
+    origin: 'The Teenage Engineering Ting it squeezes, and the radio voice that answers.',
     stack: ['Python', 'Parakeet STT', 'LuxTTS voice clone', 'Claude Code hooks', 'menu bar app'],
     year: '2026',
     links: [],
@@ -106,6 +109,7 @@ export const STATIONS: Station[] = [
       'Each pin opens the song next to the photos that placed it, and a timeline scrubs through your eras.',
       'Everything stays on the phone except that one sign-in handshake.',
     ],
+    origin: 'Thereabouts is the one English word that means roughly that place and roughly that time at once, so the name is the confidence model.',
     stack: ['Swift / SwiftUI', 'PhotoKit', 'SwiftData', 'Cloudflare Worker'],
     year: '2026',
     links: [],
@@ -127,6 +131,7 @@ export const STATIONS: Station[] = [
       'Constellation lines only join near neighbours, so the sky reads as figures instead of a hairball.',
       'A hundred thousand photo locations cluster in under a second.',
     ],
+    origin: 'Vela is Latin for sails and the name of a real constellation: the sails of Argo, the ship the Greeks set among the stars once its voyage was over. Your journeys, finished, set into a sky.',
     stack: ['Swift', 'RealityKit', 'PhotoKit', 'XcodeGen'],
     year: '2026',
     links: [],
@@ -148,6 +153,7 @@ export const STATIONS: Station[] = [
       'A vision model reads the picture; a small web stack with Google sign-in handles the rest.',
       'An iPhone app is in progress for the paid version.',
     ],
+    origin: 'Literal. It adds things to your calendar.',
     stack: ['Hono on AWS Lambda', 'S3 + CloudFront', 'Supabase', 'Gemini', 'React 19', 'Expo'],
     year: '2025–26',
     links: [{ label: 'add2cal.app', href: 'https://add2cal.app' }],
@@ -169,6 +175,7 @@ export const STATIONS: Station[] = [
       'Rollups by day, by repo and by client, so the number you bill is one glance away.',
       'Every session comes with a resume command for the clipboard, so you land back in the same folder and conversation.',
     ],
+    origin: 'Borges\'s point in space that contains all other points: one local store that holds every session, every client and every hour, so from one place you can see your whole working life at once. Also the first letter, and Cantor\'s sign for the infinite, which suits an archive that never deletes.',
     stack: ['Node', 'SQLite', 'React 19', 'Tailwind v4'],
     year: '2026',
     links: [],
@@ -190,6 +197,7 @@ export const STATIONS: Station[] = [
       'Cliffs step up in exact jump heights; the whole world is tuned around one verb.',
       'Rendering was graded against a written checklist, with screenshots as evidence.',
     ],
+    origin: 'A flea clears many times its own height. The game is built around one verb.',
     stack: ['Three.js', 'WebGPU', 'TypeScript', 'Playwright capture'],
     year: '2026',
     links: [],

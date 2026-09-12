@@ -11,6 +11,7 @@ export interface DossierElements {
   pitch: HTMLElement;
   brief: HTMLElement;
   details: HTMLElement;
+  origin: HTMLElement;
   stack: HTMLElement;
   year: HTMLElement;
   links: HTMLElement;
@@ -135,6 +136,7 @@ export class Dossier {
     this.els.title.replaceChildren(stationName(station.name));
     this.els.pitch.textContent = station.pitch;
     this.els.brief.textContent = station.brief;
+    this.els.origin.textContent = station.origin;
     this.els.details.replaceChildren(
       ...station.details.map((d) => {
         const li = document.createElement('li');
