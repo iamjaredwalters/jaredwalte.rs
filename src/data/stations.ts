@@ -59,7 +59,7 @@ export const STATIONS: Station[] = [
     artifact: 'stick',
     pitch: 'Your agent, on a thumb drive.',
     brief:
-      'A presence layer where humans, devices and software are addressable peers. A thumb-drive-sized push-to-talk stick, an iPhone app, a Mac companion and any coding agent all join the same room. An agent can ask a human a question and block until someone answers.',
+      'A presence layer where people, devices and software can all reach each other the same way. A thumb-drive-sized push-to-talk stick, an iPhone app, a Mac companion and any coding agent join the same room. An agent can ask a person a question and wait until someone answers.',
     details: [
       'The stick streams your voice to a room in the cloud that every device and agent shares, and a Lock Screen notice arrives when something needs you.',
       'The iPhone app draws each agent\'s work as particles: embers while it uses tools, sediment when the turn is done, a card when it needs an answer.',
