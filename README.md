@@ -19,7 +19,9 @@ Every station sits on a real allocation that matches the project (`frequencyNote
 
 The carrier (hero) and the sign-off sit at 000.000: nothing tuned.
 
-## Sign-off
+## Sign-on and sign-off
+
+The hero eyebrow is the sign-on: `CQ CQ CQ de JW`, the general call meaning "calling any station", sent three times with the callsign, from Los Angeles. The contact section answers it.
 
 The contact section spells `73 DE JW` in Morse on a dead carrier trace (`src/field/signoff.ts`). `73` is the amateur-radio sign-off for "best regards" (from the 1859 Western Union numeric code, where 88 is "love and kisses"); `DE` is the procedural word for "from" that separates stations in a contact; `JW` stands in for a callsign. Timing is standard: dot 1 unit, dash 3, 1 between elements, 3 between letters, 7 between words, so the trace reads `--... ...--  -.. .  .--- .--`. The pulses are the only reactive nodes and breathe with the music.
 
