@@ -170,7 +170,7 @@ export const STATIONS: Station[] = [
     artifact: 'truck',
     pitch: 'Which truck is at the brewery tonight?',
     brief:
-      'BrewBot answers one question before you leave the house: which food truck is at which South Bay brewery, tonight or this week. It gathers the schedules breweries post to Instagram and their websites onto a single page, grouped by day and brewery, with a check mark on anything confirmed that day. No account, no app store; it lives on your home screen.',
+      'BrewBot answers one question before you leave the house: which food truck is at which brewery, today or this week. It gathers the schedules breweries post, grouped by day and brewery, with a check mark on anything confirmed that day.',
     details: [
       'It stopped scraping. Brewery websites are stale or missing and the real schedule is an Instagram story that expires in a day, so a daily job reads the stories and pushes a small file. The app is just the display, which is why it can be so plain.',
       'Silence means something. "Nothing posted" and "No info yet" are different states, a same-day story always outranks the weekly grid, and a confirmed day can never be downgraded by a later re-post.',
