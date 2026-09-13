@@ -15,9 +15,9 @@ import { renderAlso, renderStations } from '@/ui/render';
 import { Tuner, type TunerStation } from '@/ui/tuner';
 
 const TARGET_POINTS = 65536;
-const SLOT = { carrier: 0, portrait: 8, shell: 9, signoff: 10 } as const;
+const SLOT = { carrier: 0, portrait: 9, shell: 10, signoff: 11 } as const;
 const STATION_SLOT = (index: number) => index + 1;
-const TARGET_COUNT = 11;
+const TARGET_COUNT = 12;
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wide = matchMedia('(min-width: 56rem)');
@@ -345,7 +345,7 @@ async function boot(): Promise<void> {
 
   const loads: Promise<void>[] = [];
   STATIONS.forEach((station, index) => {
-    if (station.artifact === 'stick' || station.artifact === 'ting') {
+    if (station.artifact === 'stick' || station.artifact === 'ting' || station.artifact === 'truck') {
       loads.push(
         loadCloud(`/clouds/${station.artifact}.bin`).then((cloud) => {
           const options: TargetOptions =

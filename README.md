@@ -1,6 +1,6 @@
 # jaredwalte.rs — receiver
 
-Personal portfolio. The site is a receiver: one WebGPU compute-particle field fills the viewport and scrolling tunes through seven stations (projects). The field morphs from a carrier wave into each project's artifact, a dossier opens with a View Transition, and an optional radio layer plays squelch and chirps between stations.
+Personal portfolio. The site is a receiver: one WebGPU compute-particle field fills the viewport and scrolling tunes through eight stations (projects). The field morphs from a carrier wave into each project's artifact, a dossier opens with a View Transition, and an optional radio layer plays squelch and chirps between stations.
 
 ## Stations and frequencies
 
@@ -13,6 +13,7 @@ Every station sits on a real allocation that matches the project (`frequencyNote
 | Thereabouts | FIX | 1575.420 | GPS L1, the carrier a phone fixes position from |
 | Vela | ZENITH | 1420.405 | The hydrogen line, radio astronomy's signature frequency |
 | add2cal | TIMECHECK | 10.000 | WWV, the NIST time-signal station |
+| BrewBot | TAPROOM | 27.185 | CB channel 19, the truckers' channel |
 | Aleph | LOGBOOK | 162.400 | NOAA Weather Radio, a continuous report of conditions |
 | Flea | LEVER | 27.145 | The 27 MHz band used by radio-controlled cars |
 | About | JARED | 146.520 | The 2-meter amateur calling frequency |
@@ -46,7 +47,7 @@ Cross-browser check: `cd /tmp/pwff && node ff.mjs` drives Playwright's Firefox t
 - `src/field/signoff.ts` — the sign-off: a dead carrier trace with `73 DE JW` riding on it as Morse pulses (the hot nodes).
 - `src/field/portrait.ts` — samples `src/assets/portrait.webp` (a headshot on black, 512px, imported so Vite hashes the URL and a swapped photo never serves stale from cache) by luminance into a point relief: density is `(luminance − black)^gamma`, so a dark background needs no mask. A high black point is what makes a face read: it empties the eye sockets and neck the way hard light would. Points sit on 64 scan lines (`rows`), and the target's `scan` option draws the raster in top to bottom on lock, like a slow-scan TV frame, with the undrawn rows held as static. Alpha is honoured for cutouts; `scripts/cutout.swift` lifts a subject off its background with macOS Vision: `swift scripts/cutout.swift in.jpg out.png`.
 - `src/field/cloud.ts` — decoder for `public/clouds/*.bin` (header + int16 xyz + rgb8, v2 adds a hot-weight byte).
-- `src/data/stations.ts` — the seven stations: copy, frequency, callsign, tint, artifact, and the origin of each name. The card carries the pitch and brief; the dossier carries the rest (details, name origin, stack, year, links). Palette: bakelite `#131110`, ivory text, and three tints (verdigris, dusty rose, lilac) as registered `--hue/--accent-l/--accent-c` properties that tween between stations.
+- `src/data/stations.ts` — the eight stations: copy, frequency, callsign, tint, artifact, and the origin of each name. The card carries the pitch and brief; the dossier carries the rest (details, name origin, stack, year, links). Palette: bakelite `#131110`, ivory text, and three tints (verdigris, dusty rose, lilac) as registered `--hue/--accent-l/--accent-c` properties that tween between stations.
 - `src/ui/` — station rendering, the dial (`dial.ts`: scroll position → station blend, signal strength with a lock plateau and hysteresis), tuner readout and draggable strip, dossier (View Transitions + `#/station` hash routing).
 - `src/audio/` — Web Audio radio cues; plans are pure and tested for duration/peak.
 - `src/styles/` — tokens (`@property`, `@function`, oklch relative colors), scroll-driven animations, `scroll-state()` container query, `corner-shape`, `sibling-index()`, `text-box`, anchor positioning, popover, `@starting-style`.

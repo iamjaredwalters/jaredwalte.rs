@@ -57,6 +57,12 @@ const JOBS = [
     prompt: `Bright, tidy electronica at 100 BPM: marimba and soft plucks, clockwork ticking percussion, warm round bass, ${MOTIF} on marimba. Organized, sunny, quietly satisfying. ${NO_VOCALS}`,
   },
   {
+    file: 'brewbot-bed.mp3',
+    kind: 'music',
+    ms: 40000,
+    prompt: `Warm evening Americana on a brewery patio: lap steel guitar, soft brushed drums, upright bass, a little Wurlitzer, ${MOTIF} on lap steel. Relaxed, golden hour, unhurried, even dynamics so it loops cleanly. ${NO_VOCALS}`,
+  },
+  {
     file: 'aleph-bed.mp3',
     kind: 'music',
     ms: 40000,
@@ -73,6 +79,7 @@ const JOBS = [
   { file: 'thereabouts-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Field recording on a coastal street: distant surf, light breeze, far-off traffic, one camera shutter click, seamless loop' },
   { file: 'vela-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Still night air on a high hill: a soft deep space drone, very distant low wind, an occasional slow low swell, no crickets, no insects, no high-pitched sounds, seamless loop' },
   { file: 'add2cal-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Paper foley over quiet room tone: a flyer unfolding and rustling, a phone camera shutter, a pen tick, a calendar page turning, spaced out over several seconds, no hiss, seamless loop' },
+  { file: 'brewbot-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Brewery patio at dusk: low crowd murmur, pint glasses clinking, a food truck griddle sizzling in the distance, a soft generator hum, no music, no voices in the clear, seamless loop' },
   { file: 'aleph-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Quiet office at night: mechanical keyboard typing in short bursts, soft terminal beeps, a distant clock tick, seamless loop' },
   { file: 'flea-texture.mp3', kind: 'sfx', loop: true, seconds: 16, text: 'Snowy hillside: wind gusts, footsteps crunching in dry snow, an occasional metallic spring twang, seamless loop' },
 ];

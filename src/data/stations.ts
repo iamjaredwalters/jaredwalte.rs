@@ -7,6 +7,7 @@ export type ArtifactKind =
   | 'calendar'
   | 'ledger'
   | 'terrain'
+  | 'truck'
   | 'portrait';
 
 export type TintName = 'verdigris' | 'rose' | 'lilac' | 'ivory';
@@ -159,6 +160,28 @@ export const STATIONS: Station[] = [
     links: [{ label: 'add2cal.app', href: 'https://add2cal.app' }],
   },
   {
+    id: 'brewbot',
+    callsign: 'TAPROOM',
+    name: 'BrewBot',
+    frequency: '27.185',
+    band: 'MHz',
+    frequencyNote: "CB channel 19, the truckers' channel",
+    tint: 'lilac',
+    artifact: 'truck',
+    pitch: 'Which truck is at the brewery tonight?',
+    brief:
+      'BrewBot answers one question before you leave the house: which food truck is at which South Bay brewery, tonight or this week. It gathers the schedules breweries post to Instagram and their websites onto a single page, grouped by day and brewery, with a check mark on anything confirmed that day. No account, no app store; it lives on your home screen.',
+    details: [
+      'It stopped scraping. Brewery websites are stale or missing and the real schedule is an Instagram story that expires in a day, so a daily job reads the stories and pushes a small file. The app is just the display, which is why it can be so plain.',
+      'Silence means something. "Nothing posted" and "No info yet" are different states, a same-day story always outranks the weekly grid, and a confirmed day can never be downgraded by a later re-post.',
+      'It remembers. Every day is its own file and none is ever overwritten, so a record of which truck was where builds up on its own. Nobody asked for the history; it was cheaper to keep than to throw away.',
+    ],
+    origin: 'Says what it is: a bot that does the legwork when you want to know what food is at a nearby brewery.',
+    stack: ['TypeScript', 'React 19', 'Vite', 'Tailwind v4', 'Hono on Lambda', 'S3 + zod', 'AWS CDK', 'CloudFront', 'PWA'],
+    year: '2025–26',
+    links: [{ label: 'brewbot.app', href: 'https://brewbot.app' }],
+  },
+  {
     id: 'aleph',
     callsign: 'LOGBOOK',
     name: 'Aleph',
@@ -205,7 +228,6 @@ export const STATIONS: Station[] = [
 ];
 
 export const ALSO_ON_AIR: StationLink[] = [
-  { label: 'brewbot.app — which food truck is at the brewery tonight', href: 'https://brewbot.app' },
   { label: 'guyver.io — a 3D-printed EDC blade, sold one at a time', href: 'https://guyver.io' },
 ];
 

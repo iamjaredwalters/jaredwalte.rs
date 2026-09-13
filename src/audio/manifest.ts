@@ -27,7 +27,7 @@ export const MANIFEST: AudioManifest = {
     roger: `${BASE}/cue-roger.mp3`,
   },
   stations: Object.fromEntries(
-    ['seevie', 'ting-radio', 'thereabouts', 'vela', 'add2cal', 'aleph', 'flea'].map((id) => [
+    ['seevie', 'ting-radio', 'thereabouts', 'vela', 'add2cal', 'brewbot', 'aleph', 'flea'].map((id) => [
       id,
       { bed: `${BASE}/${id}-bed.mp3`, texture: `${BASE}/${id}-texture.mp3` },
     ]),
