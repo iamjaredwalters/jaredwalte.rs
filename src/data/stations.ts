@@ -172,9 +172,9 @@ export const STATIONS: Station[] = [
     brief:
       'BrewBot answers one question before you leave the house: which food truck is at which brewery, today or this week. It gathers the schedules breweries post, grouped by day and brewery, with a check mark on anything confirmed that day.',
     details: [
-      'It stopped scraping. Brewery websites are stale or missing and the real schedule is an Instagram story that expires in a day, so a daily job reads the stories and pushes a small file. The app is just the display, which is why it can be so plain.',
-      'Silence means something. "Nothing posted" and "No info yet" are different states, a same-day story always outranks the weekly grid, and a confirmed day can never be downgraded by a later re-post.',
-      'It remembers. Every day is its own file and none is ever overwritten, so a record of which truck was where builds up on its own. Nobody asked for the history; it was cheaper to keep than to throw away.',
+      'Version one had a scraper per brewery, one reading a calendar feed, one parsing a web page, and each broke on its own schedule. Version two deleted them all: the real schedule is an Instagram story that is gone in a day, so a daily job catches it and pushes one small file.',
+      'Every entry says where it came from and how sure it is. A same-day story earns the check mark, the weekly grid can never overrule it, and the app never sounds more certain than the brewery did.',
+      'Nothing is an answer. "Nothing posted" and "No info yet" are different states, and because no day is ever rewritten, the files quietly become a history of the whole circuit.',
     ],
     origin: 'Says what it is: a bot that does the legwork when you want to know what food is at a nearby brewery.',
     stack: ['TypeScript', 'React 19', 'Vite', 'Tailwind v4', 'Hono on Lambda', 'S3 + zod', 'AWS CDK', 'CloudFront', 'PWA'],
