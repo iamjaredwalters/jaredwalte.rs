@@ -229,6 +229,7 @@ export const STATIONS: Station[] = [
 
 export const ALSO_ON_AIR: StationLink[] = [
   { label: 'guyver.io — a 3D-printed EDC blade, sold one at a time', href: 'https://guyver.io' },
+  { label: 'movie-craft.vercel.app — movie recommendations from mixing your favorite films together', href: 'https://movie-craft.vercel.app/' },
 ];
 
 export function stationById(id: string): Station | undefined {
